@@ -182,7 +182,7 @@ Message: ${formData.message || 'No additional message'}
             }}
             onClick={handleVideoClick} // Clicking video also toggles mute
           >
-            <source src="lv_0_20250428203511 (1).mp4" type="video/mp4" />
+            <source src="/lv_0_20250428203511 (1).mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
           
