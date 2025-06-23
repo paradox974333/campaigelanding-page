@@ -187,7 +187,7 @@ const App: React.FC = () => {
                   <h3 className="text-2xl font-semibold mb-1.5 text-stone-800">{product.size}</h3>
                   <p className="text-stone-600 text-md mb-4 h-12 flex items-center justify-center">{product.use}</p>
                   <a href="#order" className="inline-block text-sm font-semibold bg-green-100 text-green-700 px-6 py-2.5 rounded-lg shadow-sm hover:bg-green-200 hover:text-green-800 transition-colors">
-                     get FREE Rice straws
+                     Get FREE Rice straws
                   </a>
                 </div>
               </div>
