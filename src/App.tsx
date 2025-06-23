@@ -22,7 +22,7 @@ const siteInfo = {
   
   contactEmail: "info@rootwave.org",
   logoPath: "/logo icon -svg-01.png", // Ensure this path is correct in your public folder
-  heroImage: "/DSC03065.JPG", // Ensure this path is correct in your public folder
+  heroImage: "/Leonardo_Phoenix_10_In_a_visually_striking_commercial_ad_shoot_0.jpg", // Ensure this path is correct in your public folder
 };
 
 const FORM_FIELDS = [
@@ -71,7 +71,7 @@ const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
       <img
         src={siteInfo.heroImage}
         alt="Sustainable rice straws"
-        className="w-full h-full object-cover opacity-10"
+        className="w-full h-full object-cover opacity-55"
       />
     </div>
     
