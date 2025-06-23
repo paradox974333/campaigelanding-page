@@ -92,7 +92,7 @@ const App: React.FC = () => {
                 href="#order"
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg text-[15px] font-semibold transition-all duration-300 shadow-lg hover:shadow-green-600/50 transform hover:scale-105"
               >
-                Get Free Samples
+                Get Free rice straw now
               </a>
             </div>
           </div>
@@ -127,7 +127,7 @@ const App: React.FC = () => {
               href="#order"
               className={`group inline-flex items-center bg-gradient-to-r from-green-600 to-emerald-700 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:shadow-xl hover:from-green-700 hover:to-emerald-800 transition-all duration-300 transform hover:-translate-y-1.5 delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
             >
-              Claim Your Free Samples
+              Claim Your Free Rice straw Boxes
               <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
             </a>
         </div>
@@ -176,7 +176,7 @@ const App: React.FC = () => {
           <div className="text-center mb-16 md:mb-20">
             <h2 className="text-4xl md:text-5xl font-bold mb-5 text-stone-900 tracking-tight">Perfect Size for Every Sip</h2>
             <p className="text-lg md:text-xl text-stone-700 font-light max-w-3xl mx-auto">
-              Our range ensures the ideal straw for any beverage. All available as <span className="font-semibold text-green-600">FREE samples</span>.
+              Our range ensures the ideal straw for any beverage. All available as <span className="font-semibold text-green-600"> Get FREE Rice straw </span>.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -187,7 +187,7 @@ const App: React.FC = () => {
                   <h3 className="text-2xl font-semibold mb-1.5 text-stone-800">{product.size}</h3>
                   <p className="text-stone-600 text-md mb-4 h-12 flex items-center justify-center">{product.use}</p>
                   <a href="#order" className="inline-block text-sm font-semibold bg-green-100 text-green-700 px-6 py-2.5 rounded-lg shadow-sm hover:bg-green-200 hover:text-green-800 transition-colors">
-                    Get Free Sample
+                     get FREE Rice straws
                   </a>
                 </div>
               </div>
@@ -213,7 +213,7 @@ const App: React.FC = () => {
       <section id="order" className="py-20 md:py-28 bg-white">
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-5 tracking-tight bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">Request Your Free Samples</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-5 tracking-tight bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">Request Your FREE Rice straw Boxes</h2>
             <p className="text-lg md:text-xl text-stone-700 font-light">
               Provide your details, and we'll connect via WhatsApp to arrange your complimentary pack.
             </p>
