@@ -1,297 +1,253 @@
-import React, { useState, useEffect, useCallback, useRef, ChangeEvent, FormEvent } from 'react';
-import { Leaf, Shield, ArrowRight, Mail, Menu, X, CheckCircle, Phone, Gift } from 'lucide-react';
+import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent } from 'react';
+import { Leaf, Shield, ArrowRight, Mail, CheckCircle, Phone, Gift, Star } from 'lucide-react';
 
 // --- CONSTANTS & SITE CONFIG ---
-const TARGET_WHATSAPP_NUMBER = '917983882050'; // Replace with your WhatsApp number
+const TARGET_WHATSAPP_NUMBER = '917983882050';
 const COMPANY_NAME = "RootWave";
-const WEBSITE_URL = "www.rootwave.org"; // Replace with your actual domain
+const WEBSITE_URL = "www.rootwave.org";
 
 // --- DATA ---
-interface ProductVariant {
-  id: string;
-  size: string;
-  use: string;
-  image: string;
-}
-
 const siteInfo = {
-  slogan: "FREE Rice Straws! Sip Sustainably.",
-  heroIntro: `${COMPANY_NAME} is GIVING AWAY FREE SAMPLES of our premium, eco-conscious rice straws! Crafted from agricultural waste, designed for a better planet and a refined experience. Claim yours today!`,
+  slogan: `${COMPANY_NAME}: Premium Rice Straws`,
+  tagline: "Sustainable • Biodegradable • Edible",
+  heroIntro: "Made from natural rice flour and tapioca starch, our straws are perfect for eco-conscious businesses and individuals embracing sustainability.",
+  
+  benefits: [
+    { icon: Leaf, text: "Biodegrades naturally" },
+    { icon: Shield, text: "Food-safe & edible" },
+    { icon: Star, text: "Premium quality" }
+  ],
 
-  difference: {
-    title: "The Clear Choice for a Conscious Lifestyle.",
-    materialInfo: "Our straws are meticulously developed from rice flour and tapioca starch – 100% natural, plant-based ingredients.",
-    keyBenefits: [
-      { id: 'b1', icon: Leaf, text: "Truly Biodegradable: Decomposes naturally in weeks, not centuries." },
-      { id: 'b2', icon: Shield, text: "Safe & Edible: Food-grade, gluten-free, and even pleasantly edible." },
-    ],
-  },
-
-  productVariants: [
-    { id: 'prod-6.5mm', size: '6.5mm', use: 'Water, Juice, Tea, Soda', image: '/1.png' }, // Ensure images are in /public
-    { id: 'prod-8mm', size: '8mm', use: 'Smoothies, Milkshakes', image: '/2.png' },
-    { id: 'prod-10mm', size: '10mm', use: 'Thick Shakes, Fruit Blends', image: '/3.png' },
-    { id: 'prod-13mm', size: '13mm', use: 'Bubble Tea, Jelly Drinks', image: '/4.png' }
-  ] as ProductVariant[],
-
-  ourStrawsTitle: "Versatile Sizes for Every Sip",
-  ourStrawsSubtitle: "Find the perfect RootWave straw for any beverage. All sizes are part of our FREE sample campaign – request yours now!",
-
-  form: {
-    title: "Get Your FREE RootWave Rice Straws!",
-    subtitle: "Yes, they're really free! Provide your details, and we'll connect via WhatsApp to send your complimentary samples.",
-  },
-
-  contactEmail: "info@rootwave.org", // Replace with your email
-  logoPath: "/logo icon -svg-01.png", // Ensure logo is in /public and high-quality
-  heroImage: "/DSC03065.JPG", // Ensure hero image is in /public and high-quality
-  lifestyleImage: "/DSC03089.JPG", // Ensure lifestyle image is in /public and high-quality
+  productSizes: ['6.5mm', '8mm', '10mm', '13mm'],
+  
+  contactEmail: "info@rootwave.org",
+  logoPath: "/logo icon -svg-01.png", // Ensure this path is correct in your public folder
+  heroImage: "/DSC03065.JPG", // Ensure this path is correct in your public folder
 };
 
 const FORM_FIELDS = [
-  { label: 'Full Name', name: 'name', type: 'text', placeholder: 'Your Name' },
-  { label: 'Email Address', name: 'email', type: 'email', placeholder: 'you@example.com' },
-  { label: 'Phone (for WhatsApp)', name: 'phone', type: 'tel', placeholder: '+91 XXXX XXXX' },
+  { label: 'Name', name: 'name', type: 'text', placeholder: 'Your full name' },
+  { label: 'Email', name: 'email', type: 'email', placeholder: 'your@email.com' },
+  { label: 'Phone', name: 'phone', type: 'tel', placeholder: '+91 XXXXX XXXXX' },
 ] as const;
 
 type FormData = { name: string; email: string; phone: string; message: string; };
 
-const setMetaTag = (nameOrProperty: string, content: string, isProperty = false) => {
-  let element = document.querySelector(isProperty ? `meta[property="${nameOrProperty}"]` : `meta[name="${nameOrProperty}"]`) as HTMLMetaElement | null;
-  if (!element) {
-    element = document.createElement('meta');
-    if (isProperty) element.setAttribute('property', nameOrProperty);
-    else element.setAttribute('name', nameOrProperty);
-    document.head.appendChild(element);
-  }
-  element.setAttribute('content', content);
-};
-
 // --- UI COMPONENTS ---
 
-const Header: React.FC<{
-  onCTAClick: () => void;
-  onMobileMenuToggle: () => void;
-  isMobileMenuOpen: boolean;
-  menuButtonRef: React.RefObject<HTMLButtonElement>
-}> = ({ onCTAClick, onMobileMenuToggle, isMobileMenuOpen, menuButtonRef }) => (
-  <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-lg shadow-md"> {/* Subtle shadow for definition */}
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex justify-between items-center">
-      <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' });}} className="flex items-center space-x-2.5 group">
-        <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-10 sm:h-12 w-auto transition-transform group-hover:scale-105 duration-300" />
-        <span className="font-bold text-xl text-emerald-700 tracking-tight group-hover:text-emerald-600 transition-colors duration-300 hidden sm:inline">
-          {COMPANY_NAME}
-        </span>
-      </a>
-      <div className="hidden md:block">
-        <button
-          onClick={onCTAClick}
-          className="bg-gradient-to-br from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 text-white px-7 py-3 rounded-lg text-base font-semibold transition-all duration-300 ease-in-out shadow-md hover:shadow-lg transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-        >
-          Get Free Samples
-        </button>
+const Header: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => (
+  <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+    <div className="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
+      <div className="flex items-center space-x-3">
+        <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-8 w-auto" />
+        {/* MODIFIED: Company name now visible on mobile with adjusted font size */}
+        <span className="font-semibold text-base sm:text-lg text-gray-800">{COMPANY_NAME}</span>
       </div>
-      <div className="md:hidden">
-        <button
-          ref={menuButtonRef}
-          onClick={onMobileMenuToggle}
-          className="text-slate-700 hover:text-emerald-600 p-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-          aria-label="Toggle menu"
-        >
-          {isMobileMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
-        </button>
-      </div>
+      <button
+        onClick={onCTAClick}
+        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+      >
+        Free Samples
+      </button>
     </div>
-    {isMobileMenuOpen && (
-      <div className="md:hidden bg-white shadow-lg absolute w-full border-t border-slate-200 py-4 px-6">
-        <button
-          onClick={() => { onCTAClick(); onMobileMenuToggle(); }}
-          className="w-full bg-gradient-to-br from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 text-white px-6 py-3 rounded-lg text-base font-semibold transition-all duration-300 shadow-md hover:shadow-lg"
-        >
-          Get Free Samples
-        </button>
-      </div>
-    )}
   </header>
 );
 
-const CampaignHighlightBanner: React.FC<{onCTAClick: () => void}> = ({onCTAClick}) => (
+const FreeBanner: React.FC<{onCTAClick: () => void}> = ({onCTAClick}) => (
   <div 
-    className="bg-emerald-50 border-b-2 border-t border-emerald-200 text-emerald-800 py-3.5 px-4 sm:px-6 text-center cursor-pointer hover:bg-emerald-100 transition-colors duration-300"
+    className="bg-emerald-50 border-b border-emerald-100 text-emerald-800 py-3 px-4 text-center cursor-pointer hover:bg-emerald-100 transition-colors duration-200"
     onClick={onCTAClick}
-    role="button"
-    tabIndex={0}
-    onKeyPress={(e) => e.key === 'Enter' && onCTAClick()}
-    aria-label="Click to claim your free samples"
   >
-    <p className="flex items-center justify-center gap-2 flex-wrap max-w-3xl mx-auto">
-      <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500 flex-shrink-0" />
-      <span className="text-sm sm:text-base leading-tight font-medium">
-        LIMITED TIME: We're Giving Away <strong className="font-semibold text-emerald-600 underline decoration-wavy decoration-emerald-400 decoration-2">FREE Rice Straw Samples!</strong> Click to claim.
-      </span>
-      <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500 flex-shrink-0 hidden xs:inline-block" />
+    <p className="flex items-center justify-center gap-2 text-sm font-medium">
+      <Gift className="h-4 w-4" />
+      <span>Limited time: Free sample campaign active</span>
     </p>
   </div>
 );
 
 const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
-  <section className="relative pt-20 pb-24 md:pt-28 md:pb-32 text-center bg-slate-50 overflow-hidden">
-    <div className="absolute inset-0">
-        <img
-            src={siteInfo.heroImage}
-            alt="Sustainable RootWave straws in use"
-            className="w-full h-full object-cover opacity-20 md:opacity-25" // Adjust opacity based on image
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent"></div>
+  <section className="relative pt-20 pb-16 min-h-[80vh] flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
+    <div className="absolute inset-0 overflow-hidden">
+      <img
+        src={siteInfo.heroImage}
+        alt="Sustainable rice straws"
+        className="w-full h-full object-cover opacity-10"
+      />
     </div>
-    <div className="relative max-w-3xl mx-auto px-6 z-10">
-      <h1 className="text-4xl sm:text-5xl md:text-[3.6rem] font-bold text-slate-800 mb-6 !leading-tight tracking-tight">
+    
+    <div className="relative text-center px-4 max-w-2xl mx-auto z-10">
+      <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium mb-6">
+        <Gift className="h-3 w-3" />
+        <span>Free samples available</span>
+      </div>
+
+      <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 leading-tight">
         {siteInfo.slogan}
       </h1>
-      <p className="text-lg md:text-xl text-slate-600 mb-12 max-w-xl mx-auto leading-relaxed">
+      
+      <p className="text-lg sm:text-xl text-emerald-600 font-medium mb-6">
+        {siteInfo.tagline}
+      </p>
+      
+      <p className="text-base sm:text-lg text-gray-600 mb-8 leading-relaxed max-w-xl mx-auto">
         {siteInfo.heroIntro}
       </p>
+
+      <div className="flex justify-center gap-6 sm:gap-8 mb-8">
+        {siteInfo.benefits.map((benefit, index) => (
+          <div key={index} className="flex flex-col items-center">
+            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-2">
+              <benefit.icon className="h-5 w-5 text-emerald-600" />
+            </div>
+            <span className="text-xs sm:text-sm text-gray-600 text-center font-medium">{benefit.text}</span>
+          </div>
+        ))}
+      </div>
+
       <button
         onClick={onCTAClick}
-        className="bg-gradient-to-br from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 text-white px-10 py-4 rounded-xl text-lg font-semibold transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:scale-105 focus-visible:ring-4 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50"
+        className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl text-base font-semibold transition-all duration-200 inline-flex items-center gap-2 shadow-lg hover:shadow-xl"
       >
-        Request Your Free Samples <ArrowRight className="inline-block ml-2.5 h-5 w-5" />
+        <span>Request Free Samples</span>
+        <ArrowRight className="h-4 w-4" />
       </button>
+      
+      <p className="text-xs text-gray-500 mt-3">
+        No payment required • Free shipping
+      </p>
     </div>
   </section>
 );
 
-const DifferenceAndProductsSection: React.FC<{onCTAClick: () => void}> = ({onCTAClick}) => (
-  <section id="difference" className="py-20 md:py-28 bg-white">
-    <div className="max-w-5xl mx-auto px-6">
-      <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center mb-20 md:mb-28">
-        <div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-6 tracking-tight">
-            {siteInfo.difference.title}
-          </h2>
-          <p className="text-lg text-slate-700 mb-8 leading-relaxed">
-            {siteInfo.difference.materialInfo}
-          </p>
-          <div className="space-y-6">
-            {siteInfo.difference.keyBenefits.map(benefit => (
-              <div key={benefit.id} className="flex items-start">
-                <div className="flex-shrink-0 h-10 w-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mr-4 shadow-sm">
-                  <benefit.icon className="h-5 w-5" />
-                </div>
-                <p className="text-md md:text-lg text-slate-700">{benefit.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="relative aspect-w-4 aspect-h-3 md:aspect-w-1 md:aspect-h-1 rounded-xl overflow-hidden shadow-xl group">
-            <img
-                src={siteInfo.lifestyleImage}
-                alt="RootWave straws in an elegant lifestyle setting"
-                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500 ease-out"
-            />
-             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
-        </div>
-      </div>
-
-      <div className="text-center">
-        <h3 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-4 tracking-tight">
-          {siteInfo.ourStrawsTitle}
-        </h3>
-        <p className="text-lg text-slate-600 mb-12 md:mb-16 max-w-2xl mx-auto leading-relaxed">
-          {siteInfo.ourStrawsSubtitle}
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 md:gap-8">
-          {siteInfo.productVariants.map(product => (
-            <div key={product.id} className="bg-slate-50 p-5 rounded-xl shadow-md group hover:shadow-lg transition-all duration-300 ease-in-out flex flex-col items-center hover:scale-[1.03]">
-              <div className="w-full aspect-[3/4] mb-4 rounded-md overflow-hidden bg-white flex items-center justify-center">
-                <img
-                    src={product.image}
-                    alt={`${product.size} RootWave Straw`}
-                    className="w-full h-auto max-h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <h4 className="font-semibold text-slate-700 text-base md:text-lg mb-1">{product.size}</h4>
-              <p className="text-xs sm:text-sm text-slate-500 text-center h-10 leading-tight">{product.use.split(',')[0]}</p>
+const ProductShowcase: React.FC<{onCTAClick: () => void}> = ({onCTAClick}) => (
+  <section className="py-16 bg-white">
+    <div className="max-w-4xl mx-auto px-4 text-center">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+        Available Sizes
+      </h2>
+      <p className="text-base sm:text-lg text-gray-600 mb-10">
+        Perfect for any beverage - all sizes included in sample pack
+      </p>
+      
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-10">
+        {siteInfo.productSizes.map((size, index) => (
+          <div key={size} className="bg-gray-50 p-4 sm:p-6 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
+            <div className="w-16 h-20 bg-gradient-to-b from-amber-200 to-amber-300 rounded-xl mx-auto mb-4 flex items-center justify-center relative overflow-hidden">
+              <div 
+                className="bg-amber-600 rounded-full"
+                style={{
+                  width: `${4 + index * 1.5}px`,
+                  height: '60px'
+                }}
+              />
             </div>
-          ))}
-        </div>
+            <p className="font-semibold text-gray-800 text-sm sm:text-base">{size}</p>
+            <p className="text-emerald-600 font-medium text-xs sm:text-sm mt-1">Included</p>
+          </div>
+        ))}
+      </div>
+      
+      <div className="bg-emerald-50 p-6 sm:p-8 rounded-2xl border border-emerald-100">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Complete Sample Pack</h3>
+        <p className="text-sm sm:text-base text-gray-600 mb-4">All 4 sizes • Free shipping • No commitment</p>
         <button
-            onClick={onCTAClick}
-            className="mt-12 bg-transparent hover:bg-emerald-50 text-emerald-600 font-semibold py-3.5 px-8 border-2 border-emerald-500 hover:border-emerald-600 hover:text-emerald-700 rounded-lg transition-all duration-300 ease-in-out inline-flex items-center group focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 shadow-sm hover:shadow-md"
+          onClick={onCTAClick}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 inline-flex items-center gap-2"
         >
-            Claim Your FREE Sample Pack <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+          <Gift className="h-4 w-4" />
+          <span>Get Sample Pack</span>
         </button>
       </div>
     </div>
   </section>
 );
 
-const SampleFormSection: React.FC<{
+const SampleForm: React.FC<{
   formData: FormData;
   isFormValid: boolean;
   onInputChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSubmit: (e: FormEvent) => void;
 }> = ({ formData, isFormValid, onInputChange, onSubmit }) => (
-  <section id="samples" className="py-20 md:py-28 bg-slate-100">
-    <div className="max-w-xl mx-auto px-6">
-      <div className="text-center mb-10 md:mb-12">
-        <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-4 tracking-tight">{siteInfo.form.title}</h2>
-        <p className="text-lg text-slate-600 leading-relaxed">{siteInfo.form.subtitle}</p>
+  <section id="samples" className="py-16 bg-gray-50">
+    <div className="max-w-md mx-auto px-4">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Gift className="h-8 w-8 text-emerald-600" />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Request Free Samples</h2>
+        <p className="text-sm sm:text-base text-gray-600">We'll send you a complete sample pack at no cost</p>
       </div>
-      <form onSubmit={onSubmit} className="bg-white p-8 sm:p-10 rounded-xl shadow-xl space-y-6">
+      
+      <form onSubmit={onSubmit} className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+        <div className="text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+          <p className="text-emerald-700 font-medium text-sm">✓ Free campaign active - No payment required</p>
+        </div>
+
         {FORM_FIELDS.map(field => (
           <div key={field.name}>
-            <label htmlFor={field.name} className="block text-sm font-medium text-slate-700 mb-1.5">{field.label}</label>
+            <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 mb-2">{field.label}</label>
             <input
               type={field.type} name={field.name} id={field.name}
               value={formData[field.name as keyof FormData]}
               onChange={onInputChange} required
-              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 ease-in-out text-base placeholder-slate-400 shadow-sm"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200 text-sm placeholder-gray-400"
               placeholder={field.placeholder}
             />
           </div>
         ))}
+        
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1.5">Message (Optional)</label>
+          <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Message (optional)</label>
           <textarea
             name="message" id="message" value={formData.message} onChange={onInputChange}
-            rows={3} placeholder="Any specific notes or questions?"
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 ease-in-out resize-none text-base placeholder-slate-400 shadow-sm"
+            rows={3} placeholder="Any specific requirements?"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200 resize-none text-sm placeholder-gray-400"
           />
         </div>
+        
         <button
           type="submit" disabled={!isFormValid}
-          className={`w-full py-3.5 px-6 rounded-lg font-semibold text-lg transition-all duration-300 ease-in-out flex items-center justify-center transform focus-visible:ring-2 focus-visible:ring-offset-2 ${
+          className={`w-full py-3 px-6 rounded-xl font-semibold text-sm transition-colors duration-200 flex items-center justify-center gap-2 ${
             isFormValid
-              ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white hover:from-emerald-600 hover:to-emerald-800 shadow-lg hover:shadow-xl hover:scale-[1.02] focus-visible:ring-emerald-500'
-              : 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-md'
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          Send My Free Sample Request <CheckCircle className="ml-2.5 h-5 w-5" />
+          <span>Send Sample Request</span>
+          <CheckCircle className="h-4 w-4" />
         </button>
+        
+        <p className="text-xs text-gray-500 text-center leading-relaxed">
+          We'll contact you via WhatsApp to confirm delivery details
+        </p>
       </form>
     </div>
   </section>
 );
 
 const Footer: React.FC = () => (
-  <footer className="bg-slate-800 text-slate-300 py-12 md:py-16">
-    <div className="max-w-6xl mx-auto px-6 text-center">
-      <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' });}} className="inline-block mb-6 group">
-        <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-10 w-auto mx-auto opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
-      </a>
-      <p className="text-sm mb-4 text-slate-400"> {/* Slightly softer text color */}
-        © {new Date().getFullYear()} {COMPANY_NAME}. All Rights Reserved. <br className="sm:hidden"/> {WEBSITE_URL.replace(/^https?:\/\//, '')}
-      </p>
-      <div className="text-sm space-y-2 sm:space-y-0 sm:space-x-6 flex flex-col sm:flex-row justify-center items-center">
-        <a href={`mailto:${siteInfo.contactEmail}`} className="hover:text-emerald-400 transition-colors duration-300 inline-flex items-center">
-            <Mail className="h-4 w-4 mr-1.5"/> {siteInfo.contactEmail}
+  <footer className="bg-gray-900 text-gray-300 py-12">
+    <div className="max-w-4xl mx-auto px-4 text-center">
+      <div className="flex justify-center items-center mb-6">
+        <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-8 w-auto opacity-70" />
+      </div>
+      
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 text-sm">
+        <a href={`mailto:${siteInfo.contactEmail}`} className="hover:text-emerald-400 transition-colors duration-200 flex items-center gap-2">
+          <Mail className="h-4 w-4"/> {siteInfo.contactEmail}
         </a>
-        {TARGET_WHATSAPP_NUMBER && (
-            <a href={`https://wa.me/${TARGET_WHATSAPP_NUMBER.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors duration-300 inline-flex items-center">
-                <Phone className="h-4 w-4 mr-1.5"/> WhatsApp Inquiry
-            </a>
-        )}
+        <a href={`https://wa.me/${TARGET_WHATSAPP_NUMBER.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors duration-200 flex items-center gap-2">
+          <Phone className="h-4 w-4"/> WhatsApp
+        </a>
+      </div>
+      
+      <div className="border-t border-gray-800 pt-6">
+        <p className="text-xs text-gray-400 mb-2">
+          © {new Date().getFullYear()} {COMPANY_NAME} • {WEBSITE_URL}
+        </p>
+        <p className="text-xs text-emerald-400">
+          Sustainable packaging solutions
+        </p>
       </div>
     </div>
   </footer>
@@ -301,23 +257,15 @@ const Footer: React.FC = () => (
 const App: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({ name: '', email: '', phone: '', message: '' });
   const [isFormValid, setIsFormValid] = useState(false);
-  const [isPageVisible, setIsPageVisible] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsPageVisible(true), 100);
-    document.documentElement.lang = 'en';
-    document.title = `FREE ${COMPANY_NAME} Rice Straws | Eco-Friendly Samples`;
-    setMetaTag('description', `Claim your FREE samples of ${COMPANY_NAME}'s premium, eco-conscious rice straws. Biodegradable, edible, and perfect for sustainable sipping. Request yours today!`);
-    setMetaTag('keywords', `free rice straws, free samples, biodegradable straws, eco-friendly, sustainable, ${COMPANY_NAME}, premium straws, rice flour straws, edible straws`);
-    setMetaTag('og:title', `FREE ${COMPANY_NAME} Rice Straws | Claim Your Samples!`, true);
-    setMetaTag('og:description', `Get your FREE samples of ${COMPANY_NAME}'s 100% natural, biodegradable rice straws. ${siteInfo.heroIntro}`, true);
-    setMetaTag('og:type', 'website', true);
-    setMetaTag('og:url', `https://${WEBSITE_URL}`, true); // Assumes HTTPS
-    setMetaTag('og:image', `https://${WEBSITE_URL}${siteInfo.heroImage}`, true); // Ensure image path is absolute and publicly accessible for OG tags
-
-    return () => clearTimeout(timer);
+    document.title = `${COMPANY_NAME} - Premium Rice Straws | Free Samples`;
+    const metaDescription = document.querySelector('meta[name="description"]') || document.createElement('meta');
+    metaDescription.setAttribute('name', 'description');
+    metaDescription.setAttribute('content', `Get your free samples of ${COMPANY_NAME}'s premium, biodegradable rice straws. Made from natural ingredients. Sustainable packaging solutions for eco-conscious businesses.`);
+    if (!document.querySelector('meta[name="description"]')) {
+      document.head.appendChild(metaDescription);
+    }
   }, []);
 
   useEffect(() => {
@@ -327,19 +275,6 @@ const App: React.FC = () => {
     setIsFormValid(!!(name.trim().length > 1 && emailRegex.test(email) && phoneRegex.test(phone.trim())));
   }, [formData]);
 
-  useEffect(() => {
-    document.documentElement.style.scrollBehavior = 'smooth';
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-        document.body.style.overflow = 'unset';
-        document.documentElement.style.scrollBehavior = 'auto';
-    };
-  }, [isMobileMenuOpen]);
-
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   }, []);
@@ -347,44 +282,42 @@ const App: React.FC = () => {
   const handleSubmit = useCallback((e: FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
-    const message = `🌾 *${COMPANY_NAME} FREE SAMPLE REQUEST*
-👤 Name: ${formData.name}
-📧 Email: ${formData.email}
-📞 Phone: ${formData.phone}
-${formData.message ? `📝 Note: ${formData.message}` : ''}
-*Sent from ${COMPANY_NAME} Website (${WEBSITE_URL}) - FREE Sample Campaign*`;
+    
+    const message = `*${COMPANY_NAME} - Free Sample Request (Campaign)*
+
+Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone}
+${formData.message ? `Message: ${formData.message}` : ''}
+
+Request from website: ${WEBSITE_URL}`;
+
     const whatsappUrl = `https://wa.me/${TARGET_WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
     setFormData({ name: '', email: '', phone: '', message: '' });
   }, [formData, isFormValid]);
 
-  const handleMobileMenuToggle = useCallback(() => setIsMobileMenuOpen(prev => !prev), []);
-
   const scrollToSamples = useCallback(() => {
     const samplesSection = document.getElementById('samples');
     samplesSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    if(isMobileMenuOpen) setIsMobileMenuOpen(false);
-  }, [isMobileMenuOpen]);
+  }, []);
 
   return (
-    <div className={`min-h-screen bg-white text-slate-800 font-sans antialiased transition-opacity duration-700 ease-in-out ${isPageVisible ? 'opacity-100' : 'opacity-0'}`}>
-      <Header
-        onCTAClick={scrollToSamples}
-        isMobileMenuOpen={isMobileMenuOpen}
-        onMobileMenuToggle={handleMobileMenuToggle}
-        menuButtonRef={menuButtonRef}
-      />
-      <main className="pt-20"> {/* Account for fixed header height (h-20 = 5rem = 80px) */}
-        <CampaignHighlightBanner onCTAClick={scrollToSamples} />
+    <div className="min-h-screen bg-white text-gray-800 font-sans antialiased">
+      <Header onCTAClick={scrollToSamples} />
+      
+      <main>
+        <FreeBanner onCTAClick={scrollToSamples} />
         <HeroSection onCTAClick={scrollToSamples} />
-        <DifferenceAndProductsSection onCTAClick={scrollToSamples} />
-        <SampleFormSection
+        <ProductShowcase onCTAClick={scrollToSamples} />
+        <SampleForm
           formData={formData}
           isFormValid={isFormValid}
           onInputChange={handleInputChange}
           onSubmit={handleSubmit}
         />
       </main>
+      
       <Footer />
     </div>
   );
