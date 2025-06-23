@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, Recycle, Shield, Award, ArrowRight, Phone, Mail, User, Package, ChevronDown, Zap, Star, ChevronsRight } from 'lucide-react';
+import { Leaf, Recycle, Shield, Award, ArrowRight, Phone, Mail, ChevronDown, Star, ChevronsRight, Menu, X } from 'lucide-react'; // Added Menu, X
 
 // Data from your provided info (condensed for landing page)
 const siteInfo = {
@@ -14,10 +14,10 @@ const siteInfo = {
     { icon: Shield, title: "Safe & Vegan", desc: "Food-grade, gluten-free, cruelty-free." }
   ],
   productVariants: [
-    { size: '6.5mm', use: 'Water, Juice, Tea, Soda', icon: '💧', price: '₹1.75', image: '1.png' }, // Placeholder
-    { size: '8mm', use: 'Smoothies, Milkshakes', icon: '🥤', price: '₹2.20', image: '2.png' }, // Placeholder
-    { size: '10mm', use: 'Thick Shakes, Fruit Blends', icon: '🍓', price: '₹2.99', image: '3.png' }, // Placeholder
-    { size: '13mm', use: 'Bubble Tea, Jelly Drinks', icon: '🧋', price: '₹4.15', image: '4.png' } // Placeholder
+    { size: '6.5mm', use: 'Water, Juice, Tea, Soda', icon: '💧', price: '₹1.75', image: '/1.png' },
+    { size: '8mm', use: 'Smoothies, Milkshakes', icon: '🥤', price: '₹2.20', image: '/2.png' },
+    { size: '10mm', use: 'Thick Shakes, Fruit Blends', icon: '🍓', price: '₹2.99', image: '/3.png' },
+    { size: '13mm', use: 'Bubble Tea, Jelly Drinks', icon: '🧋', price: '₹4.15', image: '/4.png' }
   ],
   customization: {
     colors: "Multiple color variants available at no extra charge (White, Orange, Green, Black, Red).",
@@ -49,12 +49,26 @@ const App: React.FC = () => {
   });
   const [isFormValid, setIsFormValid] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
 
   useEffect(() => { setIsVisible(true); }, []);
+
   useEffect(() => {
     const required = formData.name && formData.email && formData.phone && formData.quantity;
     setIsFormValid(!!required);
   }, [formData]);
+
+  // Effect to handle body scroll when mobile menu is open/closed
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { // Cleanup on component unmount
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -67,9 +81,20 @@ const App: React.FC = () => {
 👤 Name: ${formData.name} | Email: ${formData.email} | Phone: ${formData.phone} | Company: ${formData.company || 'N/A'}
 📦 Quantity: ${formData.quantity} pcs | Size: ${formData.size} | Message: ${formData.message || 'N/A'}
 *Request from RootWave Website*`;
-    const whatsappUrl = `https://wa.me/917983882050?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/917983882050?text=${encodeURIComponent(message)}`; // Make sure this number is correct
     window.open(whatsappUrl, '_blank');
   };
+
+  const handleMobileMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleNavLinkClick = () => {
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  };
+
 
   return (
     <div className={`min-h-screen bg-white text-stone-900 font-sans antialiased overflow-x-hidden transition-opacity duration-1000 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
@@ -77,13 +102,15 @@ const App: React.FC = () => {
       <nav className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-stone-200/50">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 md:h-20">
-            <a href="#" className="flex items-center  group">
-              <img src="logo icon -svg-01.png" alt="RootWave Logo" className="w-10 h-10" />
-              <span className="text-xl font-semibold tracking-tight text-stone-800 group-hover:text-green-600 transition-colors">RootWave</span>
+            <a href="#" className="flex items-center group" onClick={handleNavLinkClick}>
+              <img src="/logo icon -svg-01.png" alt="RootWave Logo" className="w-10 h-10" />
+              <span className="ml-2 text-xl font-semibold tracking-tight text-stone-800 group-hover:text-green-600 transition-colors">RootWave</span>
             </a>
-            <div className="flex items-center space-x-4 sm:space-x-8">
+            
+            {/* Desktop Menu */}
+            <div className="hidden sm:flex items-center space-x-4 sm:space-x-8">
               {['Benefits', 'Products', 'Contact'].map((item) => (
-                <a key={item} href={`#${item.toLowerCase()}`} className="hidden sm:block text-[15px] font-medium text-stone-600 hover:text-green-600 transition-colors duration-200 relative group">
+                <a key={item} href={`#${item.toLowerCase()}`} className="text-[15px] font-medium text-stone-600 hover:text-green-600 transition-colors duration-200 relative group">
                   {item}
                   <span className="absolute -bottom-1.5 left-0 w-0 h-[1.5px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
                 </a>
@@ -95,15 +122,50 @@ const App: React.FC = () => {
                 Get Free rice straw now
               </a>
             </div>
+
+            {/* Mobile Menu Button & CTA */}
+            <div className="sm:hidden flex items-center">
+              <a 
+                href="#order"
+                onClick={handleNavLinkClick}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-md hover:shadow-green-600/40 transform hover:scale-105 mr-3"
+              >
+                Free Samples
+              </a>
+              <button
+                onClick={handleMobileMenuToggle}
+                className="text-stone-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 p-2 rounded-md"
+                aria-label="Open main menu"
+                aria-expanded={isMobileMenuOpen}
+              >
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="sm:hidden bg-white/95 backdrop-blur-md shadow-lg border-t border-stone-200/50 absolute w-full">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {['Benefits', 'Products', 'Contact'].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  onClick={handleNavLinkClick}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-stone-700 hover:bg-green-50 hover:text-green-600 transition-colors"
+                >
+                  {item}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
       <section className={`relative pt-32 md:pt-40 pb-28 md:pb-36 overflow-hidden`}>
-        
-             <img src="/DSC03065.JPG" alt="Natural background" className="absolute inset-0 w-full h-full object-cover opacity-100"/> 
-         
+        <img src="/DSC03065.JPG" alt="Natural background with rice straws" className="absolute inset-0 w-full h-full object-cover opacity-100"/> 
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/60 via-emerald-50/50 to-teal-50/30"></div>
           <div className="absolute top-1/4 left-1/4 w-72 h-72 md:w-96 md:h-96 bg-green-200/30 rounded-full filter blur-3xl animate-pulse-slow opacity-50"></div>
@@ -111,7 +173,7 @@ const App: React.FC = () => {
         </div>
         
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 z-10 text-center">
-            <h1 className={`text-5xl md:text-7xl lg:text-8xl font-extrabold mb-8 leading-tight tracking-tighter text-stone-900 transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <h1 className={`text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold mb-8 leading-tight tracking-tighter text-stone-900 transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               <span className="block bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700 bg-clip-text text-transparent">
                 {siteInfo.slogan.split('.')[0]}.
               </span>
@@ -125,10 +187,10 @@ const App: React.FC = () => {
             
             <a 
               href="#order"
-              className={`group inline-flex items-center bg-gradient-to-r from-green-600 to-emerald-700 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:shadow-xl hover:from-green-700 hover:to-emerald-800 transition-all duration-300 transform hover:-translate-y-1.5 delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
+              className={`group inline-flex items-center bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-3 md:px-10 md:py-4 rounded-xl font-semibold text-base md:text-lg hover:shadow-xl hover:from-green-700 hover:to-emerald-800 transition-all duration-300 transform hover:-translate-y-1.5 delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
             >
               Claim Your Free Rice straw Boxes
-              <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
+              <ArrowRight className="ml-2 md:ml-3 h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
             </a>
         </div>
       </section>
@@ -138,25 +200,24 @@ const App: React.FC = () => {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
             <div className={`transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-stone-900 leading-tight">Why RootWave <br className="hidden md:block" /> Rice Straws?</h2>
-              <p className="text-lg md:text-xl text-stone-700 font-light mb-8 max-w-lg">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-stone-900 leading-tight">Why RootWave <br className="hidden md:block" /> Rice Straws?</h2>
+              <p className="text-base sm:text-lg md:text-xl text-stone-700 font-light mb-8 max-w-lg">
                 A simple choice with a profound impact on our planet and your experience. Crafted for sustainability without compromising quality.
               </p>
-              <div className="mt-8 text-md text-stone-700 bg-green-50/70 p-6 rounded-xl border border-green-200/70">
+              <div className="mt-8 text-sm md:text-md text-stone-700 bg-green-50/70 p-6 rounded-xl border border-green-200/70">
                 <p className="font-medium mb-1">Our rice straws are crafted from {siteInfo.materialCore.split('.')[0].toLowerCase()}, agricultural waste, and water.</p>
-                <p className="text-sm">{siteInfo.materialCore.split('.').slice(1).join('.').trim()}</p>
+                <p className="text-xs sm:text-sm">{siteInfo.materialCore.split('.').slice(1).join('.').trim()}</p>
               </div>
             </div>
             <div className={`relative transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-               {/* Replace with a high-quality lifestyle image of straws */}
-              <img src="DSC03089.JPG" alt="RootWave rice straws in use" className="rounded-2xl shadow-2xl w-full object-cover aspect-[4/3]" />
-              <div className="absolute -bottom-6 -right-6 bg-white/80 backdrop-blur-md p-4 rounded-xl shadow-xl border border-stone-200/50">
-                  <Leaf className="h-8 w-8 text-green-500" />
+              <img src="/DSC03089.JPG" alt="RootWave rice straws in use" className="rounded-2xl shadow-2xl w-full object-cover aspect-[4/3]" />
+              <div className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 bg-white/80 backdrop-blur-md p-3 sm:p-4 rounded-xl shadow-xl border border-stone-200/50">
+                  <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
               </div>
             </div>
           </div>
 
-          <div className="mt-16 md:mt-24 grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="mt-16 md:mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {siteInfo.environmentalBenefits.map((benefit, idx) => (
               <div key={idx} className={`bg-gradient-to-br from-stone-50 to-stone-100/50 p-6 rounded-2xl shadow-lg border border-stone-200/50 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5 delay-${idx * 150} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg mb-4 shadow-md">
@@ -174,36 +235,36 @@ const App: React.FC = () => {
       <section id="products" className="py-20 md:py-28 bg-gradient-to-b from-green-50/50 via-emerald-50/40 to-white">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-5 text-stone-900 tracking-tight">Perfect Size for Every Sip</h2>
-            <p className="text-lg md:text-xl text-stone-700 font-light max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 text-stone-900 tracking-tight">Perfect Size for Every Sip</h2>
+            <p className="text-base sm:text-lg md:text-xl text-stone-700 font-light max-w-3xl mx-auto">
               Our range ensures the ideal straw for any beverage. All available as <span className="font-semibold text-green-600"> Get FREE Rice straw </span>.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {siteInfo.productVariants.map((product, idx) => (
               <div key={product.size} className={`group bg-white/90 backdrop-blur-lg rounded-2xl overflow-hidden shadow-xl border border-stone-200/40 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 delay-${idx * 100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                 <img src={product.image} alt={`${product.size} RootWave Rice Straw`} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"/>
                 <div className="p-6 text-center">
-                  <h3 className="text-2xl font-semibold mb-1.5 text-stone-800">{product.size}</h3>
-                  <p className="text-stone-600 text-md mb-4 h-12 flex items-center justify-center">{product.use}</p>
-                  <a href="#order" className="inline-block text-sm font-semibold bg-green-100 text-green-700 px-6 py-2.5 rounded-lg shadow-sm hover:bg-green-200 hover:text-green-800 transition-colors">
+                  <h3 className="text-xl sm:text-2xl font-semibold mb-1.5 text-stone-800">{product.size}</h3>
+                  <p className="text-stone-600 text-sm sm:text-md mb-4 h-12 flex items-center justify-center">{product.use}</p>
+                  <a href="#order" className="inline-block text-sm font-semibold bg-green-100 text-green-700 px-5 py-2 sm:px-6 sm:py-2.5 rounded-lg shadow-sm hover:bg-green-200 hover:text-green-800 transition-colors">
                      Get FREE Rice straws
                   </a>
                 </div>
               </div>
             ))}
           </div>
-           <div className="mt-16 md:mt-20 grid md:grid-cols-2 gap-8 text-sm text-stone-700">
-            <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-stone-200/50 shadow-xl">
-                <h4 className="font-semibold text-xl text-green-600 mb-3">Customization & Quality</h4>
-                <p className="mb-2"><strong className="text-stone-800">Colors:</strong> {siteInfo.customization.colors}</p>
-                <p className="mb-3"><strong className="text-stone-800">Branded Pouches:</strong> {siteInfo.customization.pouch}</p>
-                <p><strong className="text-stone-800">Our Promise:</strong> {siteInfo.qualityControl}</p>
+           <div className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-stone-700">
+            <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-stone-200/50 shadow-xl">
+                <h4 className="font-semibold text-lg sm:text-xl text-green-600 mb-3">Customization & Quality</h4>
+                <p className="mb-2 text-xs sm:text-sm"><strong className="text-stone-800">Colors:</strong> {siteInfo.customization.colors}</p>
+                <p className="mb-3 text-xs sm:text-sm"><strong className="text-stone-800">Branded Pouches:</strong> {siteInfo.customization.pouch}</p>
+                <p className="text-xs sm:text-sm"><strong className="text-stone-800">Our Promise:</strong> {siteInfo.qualityControl}</p>
             </div>
-            <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-stone-200/50 shadow-xl">
-                <h4 className="font-semibold text-xl text-green-600 mb-3">The Superior Choice</h4>
-                <p className="mb-2"><strong className="text-stone-800">vs. Plastic:</strong> {siteInfo.vsPlastic}</p>
-                <p><strong className="text-stone-800">vs. Paper:</strong> {siteInfo.vsPaper}</p>
+            <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-stone-200/50 shadow-xl">
+                <h4 className="font-semibold text-lg sm:text-xl text-green-600 mb-3">The Superior Choice</h4>
+                <p className="mb-2 text-xs sm:text-sm"><strong className="text-stone-800">vs. Plastic:</strong> {siteInfo.vsPlastic}</p>
+                <p className="text-xs sm:text-sm"><strong className="text-stone-800">vs. Paper:</strong> {siteInfo.vsPaper}</p>
             </div>
           </div>
         </div>
@@ -213,14 +274,13 @@ const App: React.FC = () => {
       <section id="order" className="py-20 md:py-28 bg-white">
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-5 tracking-tight bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">Request Your FREE Rice straw Boxes</h2>
-            <p className="text-lg md:text-xl text-stone-700 font-light">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 tracking-tight bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">Request Your FREE Rice straw Boxes</h2>
+            <p className="text-base sm:text-lg md:text-xl text-stone-700 font-light">
               Provide your details, and we'll connect via WhatsApp to arrange your complimentary pack.
             </p>
           </div>
-          <form onSubmit={handleSubmit} className="bg-stone-50/70 backdrop-blur-md rounded-2xl shadow-2xl p-8 md:p-12 border border-stone-200/60">
-            {/* Form fields styling adjusted for sleekness */}
-            <div className="grid sm:grid-cols-2 gap-x-6 gap-y-6 mb-6">
+          <form onSubmit={handleSubmit} className="bg-stone-50/70 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 md:p-12 border border-stone-200/60">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6 mb-6">
               {[
                 { label: 'Full Name *', name: 'name', type: 'text', placeholder: 'Your Name' },
                 { label: 'Email Address *', name: 'email', type: 'email', placeholder: 'you@example.com' },
@@ -228,33 +288,33 @@ const App: React.FC = () => {
                 { label: 'Company (Optional)', name: 'company', type: 'text', placeholder: 'Your Organization' }
               ].map(field => (
                 <div key={field.name}>
-                  <label htmlFor={field.name} className="block text-[14px] font-medium text-stone-700 mb-1.5">{field.label}</label>
+                  <label htmlFor={field.name} className="block text-sm font-medium text-stone-700 mb-1.5">{field.label}</label>
                   <input
                     type={field.type} name={field.name} id={field.name}
                     value={formData[field.name as keyof FormData]}
                     onChange={handleInputChange} required={field.label.includes('*')}
-                    className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-green-500/70 focus:border-green-500 transition-all duration-200 bg-white text-[15px] placeholder-stone-400 shadow-sm"
+                    className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-green-500/70 focus:border-green-500 transition-all duration-200 bg-white text-sm placeholder-stone-400 shadow-sm"
                     placeholder={field.placeholder}
                   />
                 </div>
               ))}
             </div>
-            <div className="grid sm:grid-cols-2 gap-x-6 gap-y-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6 mb-6">
               <div>
-                <label htmlFor="quantity" className="block text-[14px] font-medium text-stone-700 mb-1.5">Sample Quantity *</label>
+                <label htmlFor="quantity" className="block text-sm font-medium text-stone-700 mb-1.5">Sample Quantity *</label>
                 <input
                   type="number" name="quantity" id="quantity"
                   value={formData.quantity} onChange={handleInputChange}
                   required min="1" placeholder="e.g., 50"
-                  className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-green-500/70 focus:border-green-500 transition-all duration-200 bg-white text-[15px] placeholder-stone-400 shadow-sm"
+                  className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-green-500/70 focus:border-green-500 transition-all duration-200 bg-white text-sm placeholder-stone-400 shadow-sm"
                 />
               </div>
               <div>
-                <label htmlFor="size" className="block text-[14px] font-medium text-stone-700 mb-1.5">Preferred Size</label>
+                <label htmlFor="size" className="block text-sm font-medium text-stone-700 mb-1.5">Preferred Size</label>
                 <div className="relative">
                   <select
                     name="size" id="size" value={formData.size} onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-green-500/70 focus:border-green-500 transition-all duration-200 appearance-none bg-white text-[15px] shadow-sm"
+                    className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-green-500/70 focus:border-green-500 transition-all duration-200 appearance-none bg-white text-sm shadow-sm"
                   >
                     {siteInfo.productVariants.map(p => <option key={p.size} value={p.size}>{p.size} - {p.use.split(',')[0]}</option>)}
                   </select>
@@ -263,16 +323,16 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="mb-8">
-              <label htmlFor="message" className="block text-[14px] font-medium text-stone-700 mb-1.5">Message (Optional)</label>
+              <label htmlFor="message" className="block text-sm font-medium text-stone-700 mb-1.5">Message (Optional)</label>
               <textarea
                 name="message" id="message" value={formData.message} onChange={handleInputChange}
                 rows={3} placeholder="Any specific requirements or questions?"
-                className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-green-500/70 focus:border-green-500 transition-all duration-200 resize-none bg-white text-[15px] placeholder-stone-400 shadow-sm"
+                className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-green-500/70 focus:border-green-500 transition-all duration-200 resize-none bg-white text-sm placeholder-stone-400 shadow-sm"
               />
             </div>
             <button
               type="submit" disabled={!isFormValid}
-              className={`w-full py-4 px-6 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform ${
+              className={`w-full py-3 sm:py-4 px-6 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform ${
                 isFormValid
                   ? 'bg-gradient-to-r from-green-600 to-emerald-700 text-white hover:-translate-y-1'
                   : 'bg-stone-300 text-stone-500 cursor-not-allowed'
@@ -292,26 +352,26 @@ const App: React.FC = () => {
        <section id="contact" className="py-20 md:py-28 bg-gradient-to-br from-stone-50/70 via-stone-100/60 to-white">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-5 tracking-tight text-stone-900">Meet the <span className="text-green-600">RootWave</span> Team</h2>
-            <p className="text-lg md:text-xl text-stone-700 font-light">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 tracking-tight text-stone-900">Meet the <span className="text-green-600">RootWave</span> Team</h2>
+            <p className="text-base sm:text-lg md:text-xl text-stone-700 font-light">
               Passionate about sustainability and ready to assist you.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {siteInfo.contactTeam.map(contact => (
-              <div key={contact.name} className={`group bg-white/90 backdrop-blur-xl text-center p-8 rounded-2xl shadow-xl border transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-2 ${contact.highlight ? 'border-green-300/80 hover:border-green-400' : 'border-stone-200/60 hover:border-stone-300'}`}>
-                <div className={`inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-${contact.color} to-${contact.iconBgTo} rounded-full mb-8 shadow-xl group-hover:scale-105 transition-transform`}>
-                  <contact.icon className="h-9 w-9 text-white" />
+              <div key={contact.name} className={`group bg-white/90 backdrop-blur-xl text-center p-6 sm:p-8 rounded-2xl shadow-xl border transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-2 ${contact.highlight ? 'border-green-300/80 hover:border-green-400' : 'border-stone-200/60 hover:border-stone-300'}`}>
+                <div className={`inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-${contact.color} to-${contact.iconBgTo} rounded-full mb-6 sm:mb-8 shadow-xl group-hover:scale-105 transition-transform`}>
+                  <contact.icon className="h-8 w-8 sm:h-9 sm:w-9 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-1.5 text-stone-900">{contact.name}</h3>
-                <p className="text-stone-500 text-sm mb-6 font-medium">{contact.role}</p>
-                <div className="space-y-3 text-sm">
-                  <a href={`mailto:${contact.email}`} className="flex items-center justify-center space-x-2.5 text-stone-700 hover:text-green-600 transition-colors group/link">
-                    <Mail className="h-5 w-5 text-stone-500 group-hover/link:text-green-600 transition-colors" />
+                <h3 className="text-lg sm:text-xl font-semibold mb-1.5 text-stone-900">{contact.name}</h3>
+                <p className="text-stone-500 text-xs sm:text-sm mb-6 font-medium">{contact.role}</p>
+                <div className="space-y-3 text-xs sm:text-sm">
+                  <a href={`mailto:${contact.email}`} className="flex items-center justify-center space-x-2 text-stone-700 hover:text-green-600 transition-colors group/link">
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-stone-500 group-hover/link:text-green-600 transition-colors" />
                     <span className="font-medium tracking-tight">{contact.email}</span>
                   </a>
-                  <a href={`https://wa.me/${contact.phone.replace(/\s|\+/g, '')}`} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-center space-x-2.5 text-stone-700 hover:text-green-600 transition-colors group/link ${contact.highlight ? 'font-semibold' : ''}`}>
-                    <Phone className="h-5 w-5 text-stone-500 group-hover/link:text-green-600 transition-colors" />
+                  <a href={`https://wa.me/${contact.phone.replace(/\s|\+/g, '')}`} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-center space-x-2 text-stone-700 hover:text-green-600 transition-colors group/link ${contact.highlight ? 'font-semibold' : ''}`}>
+                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-stone-500 group-hover/link:text-green-600 transition-colors" />
                     <span className="font-medium tracking-tight">{contact.phone} (WA)</span>
                   </a>
                 </div>
@@ -325,14 +385,13 @@ const App: React.FC = () => {
       <footer className="bg-stone-900 text-stone-400 py-16 md:py-20">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center space-x-3 mb-5">
-             
-            <a href="#" className="flex items-center  group">
-              <img src="logo icon -svg-01.png" alt="RootWave Logo" className="w-10 h-10" />
-              <span className="text-xl font-semibold tracking-tight text-white-800 group-hover:text-green-600 transition-colors">RootWave</span>
+            <a href="#" className="flex items-center group">
+              <img src="/logo icon -svg-01.png" alt="RootWave Logo" className="w-10 h-10" />
+              <span className="ml-2 text-xl font-semibold tracking-tight text-white group-hover:text-green-400 transition-colors">RootWave</span>
             </a>
           </div>
-          <p className="text-lg text-stone-300 font-light mb-8">{siteInfo.slogan}</p>
-          <p className="text-sm text-stone-500">
+          <p className="text-base sm:text-lg text-stone-300 font-light mb-8">{siteInfo.slogan}</p>
+          <p className="text-xs sm:text-sm text-stone-500">
             © {new Date().getFullYear()} RootWave | <a href={`http://${siteInfo.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition-colors">{siteInfo.website}</a> | All Rights Reserved.
           </p>
         </div>
