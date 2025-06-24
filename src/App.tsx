@@ -1,30 +1,14 @@
-import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent, useRef } from 'react'; // Added useRef
 import { Shield, ArrowRight, Mail, CheckCircle, Phone, Gift, Star, Recycle, LucideIcon, Menu, X, Home, Briefcase, MapPin, Package } from 'lucide-react';
 
-// --- CONSTANTS & SITE CONFIG ---
 const TARGET_WHATSAPP_NUMBER = '917760021026';
 const COMPANY_NAME = "RootWave";
 const WEBSITE_URL = "www.rootwave.org";
-
-// Ensure this is your actual Make.com Webhook URL
-const DATA_SUBMISSION_WEBHOOK_URL = 'https://hook.eu2.make.com/clrhjur8lnbh1hlkq9ecbivb4tkboyog'; 
+const DATA_SUBMISSION_WEBHOOK_URL = 'https://hook.eu2.make.com/clrhjur8lnbh1hlkq9ecbivb4tkboyog';
 
 // --- TYPE DEFINITIONS ---
-interface EnvironmentalBenefit {
-  id: string;
-  icon: LucideIcon; // Using LucideIcon type directly
-  title: string;
-  desc: string;
-  color: string;
-}
-interface ProductVariant {
-  id: string;
-  size: string;
-  use: string;
-  icon: string;
-  image: string;
-  description: string;
-}
+interface EnvironmentalBenefit { id: string; icon: LucideIcon; title: string; desc: string; color: string; }
+interface ProductVariant { id:string; size: string; use: string; icon: string; image: string; description: string; }
 
 // --- DATA ---
 const siteInfo = {
@@ -57,15 +41,9 @@ const BUSINESS_TYPES = [
 ] as const;
 
 type FormFieldConfig = {
-    label: string;
-    name: keyof Omit<FormData, 'message'>; // Ensure name is a key of FormData (excluding message for iteration)
-    type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'multiselect';
-    placeholder: string;
-    autocomplete?: string;
-    icon?: LucideIcon;
-    options?: ReadonlyArray<{value: string; label: string}>;
+    label: string; name: keyof Omit<FormData, 'message'>; type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'multiselect';
+    placeholder: string; autocomplete?: string; icon?: LucideIcon; options?: ReadonlyArray<{value: string; label: string}>;
 }
-
 
 const FORM_FIELDS_CONFIG: FormFieldConfig[] = [
   { label: 'Name', name: 'name', type: 'text', placeholder: 'Your full name', autocomplete: 'name' },
@@ -78,21 +56,16 @@ const FORM_FIELDS_CONFIG: FormFieldConfig[] = [
 ];
 
 type FormData = {
-  name: string;
-  email: string;
-  phone: string;
-  pincode: string;
-  address: string;
-  businessType: typeof BUSINESS_TYPES[number]['value'] | '';
-  strawSizes: string[];
-  message: string;
+  name: string; email: string; phone: string; pincode: string; address: string;
+  businessType: typeof BUSINESS_TYPES[number]['value'] | ''; strawSizes: string[]; message: string;
 };
 
 // --- UI COMPONENTS ---
+
 const Header: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
-    <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
+    <header className="fixed top-0 w-full z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-8 w-8 object-contain"/>
@@ -101,10 +74,10 @@ const Header: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => {
         <nav className="hidden md:flex items-center space-x-8">
           <a href="#products" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">Products</a>
           <a href="#benefits" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">Benefits</a>
-          <a href="#samples" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors">Samples</a>
+          <a href="#samples" className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={(e) => { e.preventDefault(); onCTAClick(); }}>Samples</a>
         </nav>
         <div className="flex items-center space-x-4">
-          <button onClick={onCTAClick} className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25">
+          <button onClick={onCTAClick} className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25">
             Free Samples
           </button>
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 text-gray-700 hover:text-emerald-600 transition-colors">
@@ -115,9 +88,9 @@ const Header: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100">
           <nav className="px-4 py-4 space-y-3">
-            <a href="#products" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Products</a>
-            <a href="#benefits" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Benefits</a>
-            <a href="#samples" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Samples</a>
+            <a href="#products" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => { setIsMobileMenuOpen(false); document.getElementById('products')?.scrollIntoView({behavior: 'smooth'}); }}>Products</a>
+            <a href="#benefits" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => { setIsMobileMenuOpen(false); document.getElementById('benefits')?.scrollIntoView({behavior: 'smooth'}); }}>Benefits</a>
+            <a href="#samples" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onCTAClick();}}>Samples</a>
           </nav>
         </div>
       )}
@@ -136,11 +109,11 @@ const FreeBanner: React.FC<{onCTAClick: () => void}> = ({onCTAClick}) => (
 
 const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
   <section className="relative pt-20 pb-20 min-h-screen flex items-center justify-center gradient-hero overflow-hidden">
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden"> {/* This overflow-hidden is for decorative elements and should not affect sticky content in main flow */}
       <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl"></div>
       <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-200/30 rounded-full blur-3xl"></div>
     </div>
-    <div className="relative text-center px-4 max-w-4xl mx-auto z-10">
+    <div className="relative text-center px-4 max-w-4xl mx-auto z-10"> {/* This container has no overflow issue for sticky */}
       <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-semibold mb-8 animate-scaleIn border border-emerald-200">
         <Gift className="h-4 w-4" />
         <span>Free samples available nationwide</span>
@@ -155,8 +128,12 @@ const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
           </div>
         ))}
       </div>
+      {/* Container for buttons, itself animated. Direct parent of the button to be made sticky. */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fadeInUp" style={{animationDelay: '0.8s'}}>
-        <button onClick={onCTAClick} className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 hover:-translate-y-1">
+        <button
+          onClick={onCTAClick}
+          // ADDED sticky, top-20 (5rem = 80px, placing it 1rem below 4rem/64px header), z-20 (below header's z-30)
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 hover:-translate-y-1 sticky top-20 z-20">
           <span>Request Free Samples</span><ArrowRight className="h-5 w-5" />
         </button>
         <button onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} className="text-emerald-600 hover:text-emerald-700 font-semibold px-8 py-4 rounded-2xl transition-colors duration-300 border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50">
@@ -233,22 +210,18 @@ const BenefitsSection: React.FC = () => (
 
 const SampleForm: React.FC<{
   formData: FormData; isFormValid: boolean;
-  onInputChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, fieldName?: keyof FormData, value?: string) => void; 
-  onSubmit: (e: FormEvent) => void; isSubmitting: boolean; 
-  submissionStatus: 'idle' | 'success' | 'error' | 'webhook_error_csv_success'; 
+  onInputChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, fieldName?: keyof FormData, value?: string) => void;
+  onSubmit: (e: FormEvent) => void; isSubmitting: boolean;
+  submissionStatus: 'idle' | 'success' | 'error' | 'webhook_error_csv_success';
 }> = ({ formData, isFormValid, onInputChange, onSubmit, isSubmitting, submissionStatus }) => {
-
   const handleMultiSelectChange = (optionValue: string) => {
     const currentSizes = formData.strawSizes;
     const newSizes = currentSizes.includes(optionValue)
       ? currentSizes.filter(size => size !== optionValue)
       : [...currentSizes, optionValue];
-    // Create a mock event target for onInputChange
     const mockEventTarget = { name: 'strawSizes', value: JSON.stringify(newSizes) };
-    // Call onInputChange as if it were a direct input change
-    onInputChange({ target: mockEventTarget } as ChangeEvent<HTMLInputElement>, 'strawSizes', JSON.stringify(newSizes));
+    onInputChange({ target: mockEventTarget as any } as ChangeEvent<HTMLInputElement>, 'strawSizes', JSON.stringify(newSizes));
   };
-  
   return (
     <section id="samples" className="py-24 gradient-section">
       <div className="max-w-lg mx-auto px-4">
@@ -296,7 +269,7 @@ const SampleForm: React.FC<{
           </button>
           {submissionStatus === 'success' && (<div className="mt-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm text-center">Request sent successfully! We'll contact you on WhatsApp. Your info has been recorded.</div>)}
           {submissionStatus === 'webhook_error_csv_success' && (<div className="mt-4 p-3 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-lg text-sm text-center">Request sent! We'll contact you. A CSV backup was made.</div>)}
-          {submissionStatus === 'error' && (<div className="mt-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm text-center">Failed to record request. WhatsApp is opening. Please try again or send details via WhatsApp.</div>)}
+          {submissionStatus === 'error' && (<div className="mt-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm text-center">Failed to record request. WhatsApp may have opened. Please try again or send details via WhatsApp if needed.</div>)}
           <p className="text-xs text-gray-500 text-center leading-relaxed">We'll contact you via WhatsApp. Your details will be recorded. A CSV may be downloaded for backup.</p>
         </form>
       </div>
@@ -323,24 +296,40 @@ const Footer: React.FC = () => (
   </footer>
 );
 
+
+// --- APP COMPONENT ---
 const App: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({ name: '', email: '', phone: '', pincode: '', address: '', businessType: '', strawSizes: [], message: '' });
   const [isFormValid, setIsFormValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error' | 'webhook_error_csv_success'>('idle');
-
+  
   useEffect(() => {
     document.title = `${COMPANY_NAME} - Premium Rice Straws | Free Samples Available`;
-    const metaDescription = document.querySelector('meta[name="description"]') || document.createElement('meta');
-    metaDescription.setAttribute('name', 'description');
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+    }
     metaDescription.setAttribute('content', `Get your free samples of ${COMPANY_NAME}'s premium, biodegradable rice straws. Made from natural ingredients. Sustainable packaging solutions for eco-conscious businesses.`);
-    if (!document.querySelector('meta[name="description"]')) document.head.appendChild(metaDescription);
   }, []);
 
   useEffect(() => {
     const { name, email, phone, pincode, address, businessType, strawSizes } = formData;
-    const emailRegex = /^\S+@\S+\.\S+$/; const phoneRegex = /^\+?[0-9\s-()]{7,15}$/; const pincodeRegex = /^[1-9][0-9]{5}$/;
-    setIsFormValid(!!(name.trim().length > 1 && emailRegex.test(email) && phoneRegex.test(phone.trim()) && pincodeRegex.test(pincode.trim()) && address.trim().length > 5 && businessType !== '' && strawSizes.length > 0));
+    const emailRegex = /^\S+@\S+\.\S+$/; 
+    const phoneRegex = /^\+?[0-9\s-()]{7,15}$/;
+    const pincodeRegex = /^[1-9][0-9]{5}$/;
+
+    setIsFormValid(
+      !!(name.trim().length > 1 &&
+         emailRegex.test(email.trim()) &&
+         phoneRegex.test(phone.trim()) &&
+         pincodeRegex.test(pincode.trim()) &&
+         address.trim().length > 5 &&
+         businessType !== '' &&
+         strawSizes.length > 0)
+    );
   }, [formData]);
 
   const handleInputChange = useCallback((
@@ -349,7 +338,10 @@ const App: React.FC = () => {
     value?: string
   ) => {
     if (fieldName === 'strawSizes' && value !== undefined) {
-      try { const newSizes = JSON.parse(value) as string[]; setFormData(prev => ({ ...prev, strawSizes: newSizes }));}
+      try { 
+        const newSizes = JSON.parse(value) as string[];
+        setFormData(prev => ({ ...prev, strawSizes: newSizes }));
+      }
       catch (error) { console.error("Error parsing strawSizes:", error); }
     } else {
       const { name, value: inputValue } = e.target;
@@ -361,63 +353,105 @@ const App: React.FC = () => {
   const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
     if (!isFormValid || isSubmitting) return;
-    setIsSubmitting(true); setSubmissionStatus('idle');
+    
+    const businessTypeLabel = BUSINESS_TYPES.find(bt => bt.value === formData.businessType)?.label || formData.businessType;
+    const tempSubmissionDataForMsg = {
+        name: formData.name.trim(), email: formData.email.trim(), phone: formData.phone.trim(), 
+        pincode: formData.pincode.trim(), address: formData.address.trim(),
+        businessType: businessTypeLabel, strawSizes: formData.strawSizes.join(', '), 
+        message: formData.message.trim() || 'N/A',
+    };
+
+    const whatsappMessage = `*${COMPANY_NAME} - Free Sample Request (Campaign)*\n\nName: ${tempSubmissionDataForMsg.name}\nEmail: ${tempSubmissionDataForMsg.email}\nPhone: ${tempSubmissionDataForMsg.phone}\nPincode: ${tempSubmissionDataForMsg.pincode}\nAddress: ${tempSubmissionDataForMsg.address}\nBusiness Type: ${tempSubmissionDataForMsg.businessType}\nStraw Sizes: ${tempSubmissionDataForMsg.strawSizes}\n${tempSubmissionDataForMsg.message && tempSubmissionDataForMsg.message !== 'N/A' ? `Message: ${tempSubmissionDataForMsg.message}` : ''}\n\nRequest from website: ${WEBSITE_URL}`;
+    const whatsappUrl = `https://wa.me/${TARGET_WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
+    
+    window.open(whatsappUrl, '_blank'); 
+
+    setIsSubmitting(true); 
+    setSubmissionStatus('idle');
 
     const submissionData = {
-      name: formData.name, email: formData.email, phone: formData.phone, pincode: formData.pincode, address: formData.address,
-      businessType: formData.businessType, strawSizes: formData.strawSizes.join(', '), message: formData.message || 'N/A',
+      name: formData.name.trim(), email: formData.email.trim(), phone: formData.phone.trim(), 
+      pincode: formData.pincode.trim(), address: formData.address.trim(),
+      businessType: formData.businessType,
+      strawSizes: formData.strawSizes.join(', '),
+      message: formData.message.trim() || 'N/A',
       submittedAt: new Date().toISOString(), source: WEBSITE_URL, campaign: "Free Sample Request",
     };
 
-    let webhookSuccess = false; let csvFallbackUsed = false;
+    let webhookSuccess = false; 
+    let csvFallbackUsed = false;
+
     if (DATA_SUBMISSION_WEBHOOK_URL && DATA_SUBMISSION_WEBHOOK_URL.trim() !== '' && DATA_SUBMISSION_WEBHOOK_URL !== 'YOUR_WEBHOOK_URL_HERE') {
       try {
-        console.log("Sending to webhook:", DATA_SUBMISSION_WEBHOOK_URL, JSON.stringify(submissionData));
-        const response = await fetch(DATA_SUBMISSION_WEBHOOK_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(submissionData), mode: 'cors'});
-        if (response.ok) webhookSuccess = true; else console.error('Webhook failed:', response.status, await response.text());
-      } catch (error) { console.error('Webhook error:', error); }
-    } else console.log("Webhook URL not configured.");
+        const response = await fetch(DATA_SUBMISSION_WEBHOOK_URL, { 
+            method: 'POST', headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify(submissionData), mode: 'cors'
+        });
+        if (response.ok) {
+            webhookSuccess = true;
+            console.log('[FormSubmit] Webhook success:', await response.json());
+        } else {
+            console.error('[FormSubmit] Webhook failed:', response.status, await response.text());
+        }
+      } catch (error) {
+        console.error('[FormSubmit] Webhook error:', error);
+      }
+    } else {
+        console.log("[FormSubmit] Webhook URL not configured. Skipping webhook submission.");
+    }
 
     if (!webhookSuccess) {
-      csvFallbackUsed = true; console.log('Using CSV fallback.');
+      csvFallbackUsed = true;
       const headers = "Name,Email,Phone,Pincode,Address,BusinessType,StrawSizes,Message,SubmittedAt,Source,Campaign\n";
-      const s = (str: string) => `"${str.replace(/"/g, '""')}"`; // Sanitize helper
-      const row = `${s(formData.name)},${s(formData.email)},${s(formData.phone)},${s(formData.pincode)},${s(formData.address)},${s(formData.businessType)},${s(formData.strawSizes.join(', '))},${s(formData.message || 'N/A')},${s(submissionData.submittedAt)},${s(WEBSITE_URL)},${s("Free Sample Request")}\n`;
+      const s = (str: string | undefined) => `"${(str || "").replace(/"/g, '""')}"`;
+      const row = `${s(submissionData.name)},${s(submissionData.email)},${s(submissionData.phone)},${s(submissionData.pincode)},${s(submissionData.address)},${s(submissionData.businessType)},${s(submissionData.strawSizes)},${s(submissionData.message)},${s(submissionData.submittedAt)},${s(submissionData.source)},${s(submissionData.campaign)}\n`;
       const csvContent = headers + row;
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       if (link.download !== undefined) {
-          const url = URL.createObjectURL(blob); link.setAttribute("href", url);
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
           link.setAttribute("download", `RootWave_Sample_Request_${new Date().toISOString().replace(/[:.]/g, '-')}.csv`);
-          document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
-      } else { csvFallbackUsed = false; console.error('CSV download not supported.'); }
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+      } else {
+          csvFallbackUsed = false;
+          console.error('[FormSubmit] CSV download not supported by this browser.');
+      }
     }
 
-    const businessTypeLabel = BUSINESS_TYPES.find(bt => bt.value === formData.businessType)?.label || formData.businessType;
-    const whatsappMessage = `*${COMPANY_NAME} - Free Sample Request (Campaign)*\n\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nPincode: ${formData.pincode}\nAddress: ${formData.address}\nBusiness Type: ${businessTypeLabel}\nStraw Sizes: ${formData.strawSizes.join(', ')}\n${formData.message ? `Message: ${formData.message}` : ''}\n\nRequest from website: ${WEBSITE_URL}`;
-    const whatsappUrl = `https://wa.me/${TARGET_WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
-    window.open(whatsappUrl, '_blank');
-
     setIsSubmitting(false);
-    if (webhookSuccess) { setSubmissionStatus('success'); setFormData({ name: '', email: '', phone: '', pincode: '', address: '', businessType: '', strawSizes: [], message: '' }); }
-    else if (csvFallbackUsed) { setSubmissionStatus('webhook_error_csv_success'); setFormData({ name: '', email: '', phone: '', pincode: '', address: '', businessType: '', strawSizes: [], message: '' });}
-    else setSubmissionStatus('error');
+    if (webhookSuccess) { 
+      setSubmissionStatus('success'); 
+      setFormData({ name: '', email: '', phone: '', pincode: '', address: '', businessType: '', strawSizes: [], message: '' }); 
+    } else if (csvFallbackUsed) { 
+      setSubmissionStatus('webhook_error_csv_success'); 
+      setFormData({ name: '', email: '', phone: '', pincode: '', address: '', businessType: '', strawSizes: [], message: '' });
+    } else {
+      setSubmissionStatus('error');
+    }
   }, [formData, isFormValid, isSubmitting]);
   
   const scrollToSamples = useCallback(() => {
     document.getElementById('samples')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setSubmissionStatus('idle');
   }, []);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 font-sans antialiased">
       <Header onCTAClick={scrollToSamples} />
-      <main>
+      <main className="pt-16"> {/* Padding for fixed header */}
         <FreeBanner onCTAClick={scrollToSamples} />
         <HeroSection onCTAClick={scrollToSamples} />
         <ProductShowcase onCTAClick={scrollToSamples} />
         <BenefitsSection />
-        <SampleForm formData={formData} isFormValid={isFormValid} onInputChange={handleInputChange} onSubmit={handleSubmit} isSubmitting={isSubmitting} submissionStatus={submissionStatus}/>
+        <SampleForm 
+          formData={formData} isFormValid={isFormValid} onInputChange={handleInputChange} 
+          onSubmit={handleSubmit} isSubmitting={isSubmitting} submissionStatus={submissionStatus}
+        />
       </main>
       <Footer />
     </div>
@@ -425,3 +459,41 @@ const App: React.FC = () => {
 }
 
 export default App;
+
+/*
+  Ensure your Tailwind CSS setup includes the necessary animations and gradient styles.
+  For example, in your global CSS or Tailwind config:
+
+  @layer utilities {
+    .gradient-hero {
+      background: linear-gradient(135deg, theme('colors.emerald.50') 0%, theme('colors.green.100') 50%, theme('colors.teal.100') 100%);
+    }
+    .gradient-section {
+      background-color: theme('colors.slate.50'); // Or another gradient
+    }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideInFromLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .animate-fadeInUp { animation: fadeInUp 0.6s ease-out forwards; }
+  .animate-scaleIn { animation: scaleIn 0.5s ease-out forwards; }
+  .animate-slideInFromLeft { animation: slideInFromLeft 0.7s ease-out forwards; }
+  .animate-float { animation: float 3s ease-in-out infinite; }
+  
+  (animate-pulse is a standard Tailwind utility)
+*/
