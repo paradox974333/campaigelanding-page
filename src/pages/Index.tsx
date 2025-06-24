@@ -28,7 +28,7 @@ interface ProductVariant {
 
 // --- DATA ---
 const siteInfo = {
-  slogan: "Sip Sustainably. Live Responsibly.",
+  slogan: "ROOTWAVE PREMIUM RICE STRAWS",
   websiteName: "RootWave",
   websiteUrl: "www.rootwave.org",
   brandIntro: "RootWave creates bio-based alternatives from agricultural rice waste, promoting a circular economy and a healthier planet.",
