@@ -73,7 +73,7 @@ const siteInfo = {
       size: '6.5mm', 
       use: 'Water, Juice, Tea, Soda', 
       icon: '💧', 
-      image: '/1.png',
+      image: '/2.png',
       description: 'Perfect for everyday beverages and light drinks'
     },
     { 
@@ -81,7 +81,7 @@ const siteInfo = {
       size: '8mm', 
       use: 'Smoothies, Milkshakes', 
       icon: '🥤', 
-      image: '/2.png',
+      image: '/1.png',
       description: 'Ideal for medium-thick beverages and protein shakes'
     },
     { 
