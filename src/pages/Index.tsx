@@ -141,51 +141,54 @@ const FreeBanner: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
 );
 
 const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
-  const [isButtonFixed, setIsButtonFixed] = useState(false);
-  const [buttonOriginalStyles, setButtonOriginalStyles] = useState<{
+  const [showFixedCta, setShowFixedCta] = useState(false);
+  const [ctaOriginalDimensions, setCtaOriginalDimensions] = useState<{
     width: number;
     height: number;
-    left: number; 
-    topInDocument: number; 
-  }>({ width: 0, height: 0, left: 0, topInDocument: 0 });
+    left: number; // Original left offset from viewport for the fixed button
+  }>({ width: 0, height: 0, left: 0 });
 
-  const ctaButtonRef = useRef<HTMLButtonElement>(null);
-  const sampleFormSectionRef = useRef<HTMLElement | null>(null); // Ref for the sample form section
+  const originalCtaButtonRef = useRef<HTMLButtonElement>(null); // Ref for the button in normal flow
+  const buttonGroupContainerRef = useRef<HTMLDivElement>(null); // Ref for the div wrapping both buttons
+  const sampleFormSectionRef = useRef<HTMLElement | null>(null);
+  const [buttonGroupContainerTop, setButtonGroupContainerTop] = useState(0);
 
-  // Get initial dimensions and position of the button
+
   useEffect(() => {
-    if (ctaButtonRef.current) {
-      const rect = ctaButtonRef.current.getBoundingClientRect();
-      if(!isButtonFixed) { // Only set if not already fixed to get true flow dimensions
-        setButtonOriginalStyles({
+    // Capture original dimensions of the CTA button for the fixed version and placeholder
+    if (originalCtaButtonRef.current) {
+      const rect = originalCtaButtonRef.current.getBoundingClientRect();
+      // Only update if values actually changed to prevent re-renders
+      if (rect.width !== ctaOriginalDimensions.width || rect.height !== ctaOriginalDimensions.height || rect.left !== ctaOriginalDimensions.left ) {
+        setCtaOriginalDimensions({
           width: rect.width,
           height: rect.height,
           left: rect.left,
-          topInDocument: rect.top + window.pageYOffset,
         });
       }
     }
-    // Get a reference to the sample form section
-    sampleFormSectionRef.current = document.getElementById('samples');
+    
+    // Capture initial top position of the button group container
+    if (buttonGroupContainerRef.current && buttonGroupContainerTop === 0) {
+      const groupRect = buttonGroupContainerRef.current.getBoundingClientRect();
+      setButtonGroupContainerTop(groupRect.top + window.pageYOffset);
+    }
+    
+    if(!sampleFormSectionRef.current){
+        sampleFormSectionRef.current = document.getElementById('samples');
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isButtonFixed]); // Re-measure if isButtonFixed changes (e.g. back to false)
+  }, [ctaOriginalDimensions.width, ctaOriginalDimensions.height, ctaOriginalDimensions.left, buttonGroupContainerTop]); // Depend on dimensions to allow re-measure if needed after layout shifts
 
   useEffect(() => {
-    // Attempt to get original styles if they weren't set (e.g., initial render)
-    if (buttonOriginalStyles.topInDocument === 0 && ctaButtonRef.current && !isButtonFixed) {
-        const rect = ctaButtonRef.current.getBoundingClientRect();
-         setButtonOriginalStyles({
-            width: rect.width,
-            height: rect.height,
-            left: rect.left,
-            topInDocument: rect.top + window.pageYOffset,
-        });
-        return; 
+    if (buttonGroupContainerTop === 0 && buttonGroupContainerRef.current) {
+        const groupRect = buttonGroupContainerRef.current.getBoundingClientRect();
+        setButtonGroupContainerTop(groupRect.top + window.pageYOffset);
+        return; // Re-run effect after state update
     }
-    if (buttonOriginalStyles.topInDocument === 0) return;
+    if (buttonGroupContainerTop === 0) return; // Wait until we have the container's top
 
-
-    const STICKY_TOP_VIEWPORT_PERCENT = 80; 
+    const STICKY_TOP_VIEWPORT_PERCENT = 65; 
 
     const handleScroll = () => {
       const scrollPosition = window.pageYOffset;
@@ -194,92 +197,108 @@ const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
       let formSectionVisible = false;
       if (sampleFormSectionRef.current) {
         const formRect = sampleFormSectionRef.current.getBoundingClientRect();
-        // Consider form section "visible" if its top is above a certain point (e.g., 85% of viewport height)
-        // or if it's generally intersecting the viewport significantly.
         formSectionVisible = formRect.top < window.innerHeight * 0.85 && formRect.bottom > window.innerHeight * 0.15;
       }
 
       if (formSectionVisible) {
-        if (isButtonFixed) setIsButtonFixed(false); // Hide sticky button if form is visible
+        if (showFixedCta) setShowFixedCta(false); 
       } else {
-        // Original logic for making button sticky
-        if (buttonOriginalStyles.topInDocument - scrollPosition < stickyPointOnScreenPx) {
-          if (!isButtonFixed) setIsButtonFixed(true);
+        // Trigger based on when the top of the button group container passes the sticky point
+        if (buttonGroupContainerTop - scrollPosition < stickyPointOnScreenPx) {
+          if (!showFixedCta) setShowFixedCta(true);
         } else {
-          if (isButtonFixed) setIsButtonFixed(false);
+          if (showFixedCta) setShowFixedCta(false);
         }
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isButtonFixed, buttonOriginalStyles.topInDocument]);
-
-  const fixedButtonStyles: CSSProperties = { 
-    position: 'fixed',
-    top: `${(window.innerHeight * 80) / 100}px`, 
-    left: `${buttonOriginalStyles.left}px`,
-    width: `${buttonOriginalStyles.width}px`,
-    height: `${buttonOriginalStyles.height}px`,
-    zIndex: 50, 
-  };
-
-  const flowButtonStyles: CSSProperties = { 
-    visibility: 'visible',
-  };
-  
-  const placeholderStyles: CSSProperties = { 
-    width: buttonOriginalStyles.width ? `${buttonOriginalStyles.width}px` : 'auto',
-    height: buttonOriginalStyles.height ? `${buttonOriginalStyles.height}px` : 'auto',
-    visibility: isButtonFixed ? 'visible' : 'hidden', 
-  };
+  }, [showFixedCta, buttonGroupContainerTop]);
 
   const ctaButtonClasses = "bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 hover:-translate-y-1";
 
   return (
-    <section className="relative pt-20 pb-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-blue-50 overflow-hidden">
-      <div className="relative text-center px-4 max-w-4xl mx-auto z-10">
-        <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-emerald-200">
-          <Gift className="h-4 w-4" />
-          <span>Free samples available nationwide</span>
+    <> {/* Fragment to allow rendering the fixed button outside the main section's DOM flow if needed, though here it's conditional */}
+      <section className="relative pt-20 pb-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-blue-50 overflow-hidden">
+        {/* ... other hero content like blobs ... */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-200/30 rounded-full blur-3xl"></div>
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">{siteInfo.slogan}</h1>
-        <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-12 leading-relaxed max-w-3xl mx-auto font-light">{siteInfo.brandIntro}</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
-          {siteInfo.environmentalBenefits.map((benefit) => (
-            <div key={benefit.id} className="flex flex-col items-center p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50 hover:bg-white/90 transition-all duration-300 hover:-translate-y-1">
-              <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-xl flex items-center justify-center mb-3`}>
-                <benefit.icon className={`h-6 w-6 text-${benefit.color}-600`} />
+
+        <div className="relative text-center px-4 max-w-4xl mx-auto z-10"> {/* Main content container */}
+          <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-emerald-200">
+            <Gift className="h-4 w-4" />
+            <span>Free samples available nationwide</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">{siteInfo.slogan}</h1>
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-12 leading-relaxed max-w-3xl mx-auto font-light">{siteInfo.brandIntro}</p>
+          
+          {/* Button Group Container */}
+          <div ref={buttonGroupContainerRef} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+              {/* Original "Request Free Samples" button - its visibility is controlled */}
+              <button
+                  ref={originalCtaButtonRef}
+                  onClick={onCTAClick}
+                  className={ctaButtonClasses}
+                  style={{
+                    // When fixed button is shown, this original one is hidden to avoid duplicate
+                    // but it still contributes to layout for placeholder calculation
+                    visibility: showFixedCta ? 'hidden' : 'visible',
+                  }}
+              >
+                  <span>Request Free Samples</span>
+                  <ArrowRight className="h-5 w-5" />
+              </button>
+
+              {/* "View Products" button always stays in flow */}
+              <button
+                  onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="text-emerald-600 hover:text-emerald-700 font-semibold px-8 py-4 rounded-2xl transition-colors duration-300 border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50"
+              >
+                  View Products
+              </button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
+            {siteInfo.environmentalBenefits.map((benefit) => (
+              <div key={benefit.id} className="flex flex-col items-center p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50 hover:bg-white/90 transition-all duration-300 hover:-translate-y-1">
+                <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-xl flex items-center justify-center mb-3`}>
+                  <benefit.icon className={`h-6 w-6 text-${benefit.color}-600`} />
+                </div>
+                <span className="text-sm font-semibold text-gray-800 text-center leading-tight">{benefit.title}</span>
               </div>
-              <span className="text-sm font-semibold text-gray-800 text-center leading-tight">{benefit.title}</span>
-            </div>
-          ))}
+            ))}
+          </div>
+          
+          <p className="text-sm text-gray-500 mt-4">No payment required • Free nationwide shipping • 48-hour dispatch</p>
         </div>
+      </section>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <div style={placeholderStyles} /> 
-            
-            <button
-                ref={ctaButtonRef}
-                onClick={onCTAClick}
-                className={ctaButtonClasses}
-                style={isButtonFixed ? fixedButtonStyles : flowButtonStyles}
-                >
-                <span>Request Free Samples</span>
-                <ArrowRight className="h-5 w-5" />
-            </button>
-
-          <button
-            onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
-            className="text-emerald-600 hover:text-emerald-700 font-semibold px-8 py-4 rounded-2xl transition-colors duration-300 border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50">
-            View Products
-          </button>
-        </div>
-        <p className="text-sm text-gray-500 mt-4">No payment required • Free nationwide shipping • 48-hour dispatch</p>
-      </div>
-    </section>
+      {/* Conditionally rendered "Fixed" version of the CTA Button */}
+      {/* This button is OUTSIDE the normal flow of HeroSection when visible */}
+      {showFixedCta && ctaOriginalDimensions.width > 0 && (
+        <button
+          onClick={onCTAClick}
+          className={ctaButtonClasses} // Same appearance classes
+          style={{
+            position: 'fixed',
+            top: `${(window.innerHeight * 65) / 100}px`,
+            left: `${ctaOriginalDimensions.left}px`,
+            width: `${ctaOriginalDimensions.width}px`,
+            height: `${ctaOriginalDimensions.height}px`,
+            zIndex: 50, // Higher than Header's z-30
+            transform: 'translateZ(0px)', // Often helps iOS with z-index/fixed rendering
+          }}
+        >
+          <span>Request Free Samples</span>
+          <ArrowRight className="h-5 w-5" />
+        </button>
+      )}
+    </>
   );
 };
 
@@ -361,7 +380,7 @@ const BenefitsSection: React.FC = () => (
   </section>
 );
 
-const SampleForm: React.FC<{ // This section has id="samples"
+const SampleForm: React.FC<{
   formData: FormData;
   isFormValid: boolean;
   onInputChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, fieldName?: keyof FormData, value?: string) => void;
@@ -726,7 +745,7 @@ const Index: React.FC = () => {
   return (
     <div className="min-h-screen bg-white text-gray-800 font-sans antialiased">
       <Header onCTAClick={scrollToSamples} />
-      <main className="pt-16">
+      <main className="pt-16"> {/* This main tag has position:relative implicitly by some browsers, or by Tailwind's reset. */}
         <FreeBanner onCTAClick={scrollToSamples} />
         <HeroSection onCTAClick={scrollToSamples} />
         <ProductShowcase onCTAClick={scrollToSamples} />
