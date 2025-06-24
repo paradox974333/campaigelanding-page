@@ -97,6 +97,7 @@ type FormData = {
 const Header: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Header has z-30
   return (
     <header className="fixed top-0 w-full z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
@@ -145,39 +146,50 @@ const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
   const [buttonOriginalStyles, setButtonOriginalStyles] = useState<{
     width: number;
     height: number;
-    left: number; // Original left offset from viewport edge
-    topInDocument: number; // Original top position relative to the document
+    left: number; 
+    topInDocument: number; 
   }>({ width: 0, height: 0, left: 0, topInDocument: 0 });
 
   const ctaButtonRef = useRef<HTMLButtonElement>(null);
-  const placeholderContainerRef = useRef<HTMLDivElement>(null); // Ref for the placeholder's container (the flex div)
+  // No need for placeholderContainerRef if we make the button itself conditionally visible in flow.
 
-  // Get initial dimensions and position of the button
   useEffect(() => {
     if (ctaButtonRef.current) {
       const rect = ctaButtonRef.current.getBoundingClientRect();
-      setButtonOriginalStyles({
-        width: rect.width,
-        height: rect.height,
-        left: rect.left,
-        topInDocument: rect.top + window.pageYOffset,
-      });
+      // Only set if not already fixed, to get true flow dimensions
+      if(!isButtonFixed) {
+        setButtonOriginalStyles({
+          width: rect.width,
+          height: rect.height,
+          left: rect.left,
+          topInDocument: rect.top + window.pageYOffset,
+        });
+      }
     }
-  }, []); // Run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isButtonFixed]); // Rerun if isButtonFixed changes to capture original state when it un-fixes
 
-  // Handle scroll to toggle fixed state
   useEffect(() => {
-    if (buttonOriginalStyles.topInDocument === 0) return; // Wait until original position is known
+    if (buttonOriginalStyles.topInDocument === 0 && ctaButtonRef.current) {
+        // One-time capture if not already set (e.g. on initial mount if not fixed yet)
+        const rect = ctaButtonRef.current.getBoundingClientRect();
+         setButtonOriginalStyles({
+            width: rect.width,
+            height: rect.height,
+            left: rect.left,
+            topInDocument: rect.top + window.pageYOffset,
+        });
+        return; // prevent immediate re-run of this effect
+    }
+    if (buttonOriginalStyles.topInDocument === 0) return;
 
-    // CONFIGURATION: Where the button should stick vertically on the viewport when fixed.
-    const STICKY_TOP_VIEWPORT_PERCENT = 80; // Sticks at 80% from the top of the viewport (near bottom)
-                                           // Change to 85 or 90 for even lower.
+
+    const STICKY_TOP_VIEWPORT_PERCENT = 80; 
 
     const handleScroll = () => {
       const scrollPosition = window.pageYOffset;
       const stickyPointOnScreenPx = (window.innerHeight * STICKY_TOP_VIEWPORT_PERCENT) / 100;
       
-      // The button should become fixed when its original top position scrolls PAST the desired sticky point on the screen.
       if (buttonOriginalStyles.topInDocument - scrollPosition < stickyPointOnScreenPx) {
         if (!isButtonFixed) setIsButtonFixed(true);
       } else {
@@ -186,35 +198,42 @@ const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isButtonFixed, buttonOriginalStyles.topInDocument]);
 
-
-  // Dynamic styles for the button when it's fixed
-  const fixedButtonStyles: CSSProperties = isButtonFixed ? {
+  const fixedButtonStyles: CSSProperties = { // Applied when isButtonFixed is true
     position: 'fixed',
-    top: `${(window.innerHeight * 80) / 100}px`, // Sticks at 80% from top.
+    top: `${(window.innerHeight * 80) / 100}px`, 
     left: `${buttonOriginalStyles.left}px`,
     width: `${buttonOriginalStyles.width}px`,
     height: `${buttonOriginalStyles.height}px`,
-    zIndex: 50,
-    // If you want the *bottom* of the button to align with, say, 20px from viewport bottom:
-    // top: `calc(${window.innerHeight}px - ${buttonOriginalStyles.height}px - 20px)`, // 20px from bottom
-    // The current 80% method is simpler if a proportional distance from top is acceptable.
-  } : {};
+    zIndex: 50, // Higher than Header's z-30
+  };
 
-  // Base classes for button appearance (always applied)
+  const flowButtonStyles: CSSProperties = { // Applied when isButtonFixed is false
+    visibility: 'visible', // Ensure it's visible in normal flow
+  };
+  
+  const placeholderStyles: CSSProperties = { // For the div that takes button's space
+    width: buttonOriginalStyles.width ? `${buttonOriginalStyles.width}px` : 'auto',
+    height: buttonOriginalStyles.height ? `${buttonOriginalStyles.height}px` : 'auto',
+    // We only want the placeholder to be "active" (i.e., take space) when the button is fixed
+    visibility: isButtonFixed ? 'visible' : 'hidden', 
+    // If the button originally had margin that contributed to flex gap, replicate it here:
+    // e.g., marginRight: '1rem' (if original button had mr-4 in flex-row)
+    // This depends on how the original `gap-4` on parent is handled by the browser
+    // when one item becomes position:fixed. Explicitly setting placeholder width/height is safest.
+  };
+
+
   const ctaButtonClasses = "bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 hover:-translate-y-1";
 
   return (
     <section className="relative pt-20 pb-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-blue-50 overflow-hidden">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-200/30 rounded-full blur-3xl"></div>
-      </div>
-      <div className="relative text-center px-4 max-w-4xl mx-auto z-10">
+      {/* ... other hero content ... */}
+      <div className="relative text-center px-4 max-w-4xl mx-auto z-10"> {/* Ensure Hero content has z-index if needed relative to bg blobs */}
         <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-emerald-200">
           <Gift className="h-4 w-4" />
           <span>Free samples available nationwide</span>
@@ -232,26 +251,20 @@ const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
           ))}
         </div>
 
-        {/* This div is the flex container for the buttons */}
-        <div ref={placeholderContainerRef} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            {/* Placeholder for the "Request Free Samples" button */}
-            <div style={isButtonFixed && buttonOriginalStyles.width > 0 ? {
-                width: buttonOriginalStyles.width,
-                height: buttonOriginalStyles.height,
-            } : { /* No explicit style when button is not fixed */ }}>
-                <button
-                    ref={ctaButtonRef}
-                    onClick={onCTAClick}
-                    className={ctaButtonClasses}
-                    style={isButtonFixed 
-                        ? fixedButtonStyles 
-                        : { visibility: 'visible' }
-                    }
-                    >
-                    <span>Request Free Samples</span>
-                    <ArrowRight className="h-5 w-5" />
-                </button>
-            </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Placeholder - only takes space when button is fixed */}
+            <div style={placeholderStyles} /> 
+            
+            {/* The actual button - its style attribute is key for positioning */}
+            <button
+                ref={ctaButtonRef}
+                onClick={onCTAClick}
+                className={ctaButtonClasses}
+                style={isButtonFixed ? fixedButtonStyles : flowButtonStyles}
+                >
+                <span>Request Free Samples</span>
+                <ArrowRight className="h-5 w-5" />
+            </button>
 
           <button
             onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
@@ -708,7 +721,7 @@ const Index: React.FC = () => {
   return (
     <div className="min-h-screen bg-white text-gray-800 font-sans antialiased">
       <Header onCTAClick={scrollToSamples} />
-      <main className="pt-16">
+      <main className="pt-16"> {/* The main tag itself might need adjustments if it creates a stacking context unintentionally */}
         <FreeBanner onCTAClick={scrollToSamples} />
         <HeroSection onCTAClick={scrollToSamples} />
         <ProductShowcase onCTAClick={scrollToSamples} />
