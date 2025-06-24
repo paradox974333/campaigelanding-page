@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent } from 'react';
-import { Shield, ArrowRight, Mail, CheckCircle, Phone, Gift, Star, Recycle, DivideIcon as LucideIcon, Menu, X, Award, Users, MapPin } from 'lucide-react';
+import { Shield, ArrowRight, Mail, CheckCircle, Phone, Gift, Star, Recycle, DivideIcon as LucideIcon, Menu, X } from 'lucide-react';
 
 // --- CONSTANTS & SITE CONFIG ---
 const TARGET_WHATSAPP_NUMBER = '917983882050';
@@ -24,12 +24,6 @@ interface ProductVariant {
   description: string;
 }
 
-interface Statistic {
-  id: string;
-  value: string;
-  label: string;
-  icon: typeof LucideIcon;
-}
 // --- DATA ---
 const siteInfo = {
   slogan: "Sip Sustainably. Live Responsibly.",
@@ -101,17 +95,6 @@ const siteInfo = {
       description: 'Perfect for bubble tea and drinks with toppings'
     }
   ] as ProductVariant[],
-  statistics: [
-    { id: 'stat-customers', value: '500+', label: 'Happy Customers', icon: Users },
-    { id: 'stat-awards', value: '99%', label: 'Satisfaction Rate', icon: Award },
-    { id: 'stat-locations', value: '25+', label: 'Cities Served', icon: MapPin },
-    { id: 'stat-eco', value: '100K+', label: 'Plastic Straws Replaced', icon: Shield }
-  ] as Statistic[],
-  customization: {
-    colors: "Multiple vibrant color variants available at no extra charge (White, Orange, Green, Black, Red).",
-    pouch: "Custom-branded eco-pouches for bulk orders (Min: 30,000 pcs, Setup: ₹10,000)."
-  },
-  qualityControl: "Rigorous 4-stage quality assurance: Material Inspection, Manufacturing Control, Packaging Verification, Final Approval for perfection.",
   vsPlastic: "Plastic: Non-biodegradable (400+ yrs), fossil fuel-based, pollutes ecosystems. Our Straws: Biodegradable (weeks), plant-based, nourishes soil.",
   vsPaper: "Paper: Often soggy, impacts taste, may contain non-compostable coatings. Our Straws: Durable, neutral taste, 100% home compostable.",
   contactEmail: "info@rootwave.org",
@@ -251,25 +234,6 @@ const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
   </section>
 );
 
-// Statistics Section
-const StatisticsSection: React.FC = () => (
-  <section className="py-16 bg-white">
-    <div className="max-w-6xl mx-auto px-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-        {siteInfo.statistics.map((stat, index) => (
-          <div key={stat.id} className={`text-center animate-fadeInUp`} style={{animationDelay: `${index * 0.1}s`}}>
-            <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <stat.icon className="h-8 w-8 text-emerald-600" />
-            </div>
-            <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
-            <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
 // Product Card Component
 interface ProductCardProps {
   product: ProductVariant;
@@ -326,20 +290,8 @@ const ProductShowcase: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => 
         ))}
       </div>
       
-      {/* Feature comparison cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-8 rounded-3xl border border-emerald-100 shadow-lg">
-          <h3 className="font-bold text-xl text-emerald-800 mb-4 flex items-center gap-2">
-            <Star className="h-5 w-5" />
-            Customization & Quality
-          </h3>
-          <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
-            <p><span className="font-semibold text-gray-900">Vibrant Colors:</span> {siteInfo.customization.colors}</p>
-            <p><span className="font-semibold text-gray-900">Branded Eco-Pouches:</span> {siteInfo.customization.pouch}</p>
-            <p><span className="font-semibold text-gray-900">Our Quality Promise:</span> {siteInfo.qualityControl}</p>
-          </div>
-        </div>
-        
+      {/* Comparison card */}
+      <div className="max-w-4xl mx-auto">
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-3xl border border-blue-100 shadow-lg">
           <h3 className="font-bold text-xl text-blue-800 mb-4 flex items-center gap-2">
             <Shield className="h-5 w-5" />
@@ -555,7 +507,6 @@ Request from website: ${WEBSITE_URL}`;
       <main>
         <FreeBanner onCTAClick={scrollToSamples} />
         <HeroSection onCTAClick={scrollToSamples} />
-        <StatisticsSection />
         <ProductShowcase onCTAClick={scrollToSamples} />
         <BenefitsSection />
         <SampleForm
