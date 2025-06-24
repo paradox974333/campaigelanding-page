@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react'; // Removed useState, useEffect
 import { Gift, ArrowRight } from 'lucide-react';
 
 interface FloatingSampleButtonProps {
@@ -7,21 +6,21 @@ interface FloatingSampleButtonProps {
 }
 
 const FloatingSampleButton: React.FC<FloatingSampleButtonProps> = ({ onCTAClick }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  // const [isVisible, setIsVisible] = useState(false); // REMOVED
 
-  useEffect(() => {
-    const handleScroll = () => {
-      // Show button after scrolling 100vh (past hero section)
-      const scrollPosition = window.scrollY;
-      const heroHeight = window.innerHeight;
-      setIsVisible(scrollPosition > heroHeight * 0.8);
-    };
+  // useEffect(() => { // REMOVED
+  //   const handleScroll = () => {
+  //     // Show button after scrolling 100vh (past hero section)
+  //     const scrollPosition = window.scrollY;
+  //     const heroHeight = window.innerHeight;
+  //     setIsVisible(scrollPosition > heroHeight * 0.8);
+  //   };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  //   window.addEventListener('scroll', handleScroll);
+  //   return () => window.removeEventListener('scroll', handleScroll);
+  // }, []);
 
-  if (!isVisible) return null;
+  // if (!isVisible) return null; // REMOVED - The button will now always be rendered
 
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-fadeInUp">

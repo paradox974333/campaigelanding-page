@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent, useRef, CSSProperties } from 'react';
 import { Shield, ArrowRight, Mail, CheckCircle, Phone, Gift, Star, Recycle, LucideIcon, Menu, X, Home, Briefcase, MapPin, Package } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
-import FloatingSampleButton from '@/components/FloatingSampleButton';
 
 const TARGET_WHATSAPP_NUMBER = '917760021026';
 const COMPANY_NAME = "RootWave";
@@ -9,21 +8,21 @@ const WEBSITE_URL = "www.rootwave.org";
 const DATA_SUBMISSION_WEBHOOK_URL = 'https://hook.eu2.make.com/clrhjur8lnbh1hlkq9ecbivb4tkboyog';
 
 // --- TYPE DEFINITIONS ---
-interface EnvironmentalBenefit { 
-  id: string; 
-  icon: LucideIcon; 
-  title: string; 
-  desc: string; 
-  color: string; 
+interface EnvironmentalBenefit {
+  id: string;
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  color: string;
 }
 
-interface ProductVariant { 
-  id: string; 
-  size: string; 
-  use: string; 
-  icon: string; 
-  image: string; 
-  description: string; 
+interface ProductVariant {
+  id: string;
+  size: string;
+  use: string;
+  icon: string;
+  image: string;
+  description: string;
 }
 
 // --- DATA ---
@@ -51,26 +50,26 @@ const siteInfo = {
 };
 
 const BUSINESS_TYPES = [
-  { value: '', label: 'Select type...' }, 
-  { value: 'cafe', label: 'Cafe' }, 
-  { value: 'restaurant', label: 'Restaurant' }, 
+  { value: '', label: 'Select type...' },
+  { value: 'cafe', label: 'Cafe' },
+  { value: 'restaurant', label: 'Restaurant' },
   { value: 'hotel', label: 'Hotel' },
-  { value: 'bar', label: 'Bar/Pub' }, 
-  { value: 'caterer', label: 'Caterer' }, 
+  { value: 'bar', label: 'Bar/Pub' },
+  { value: 'caterer', label: 'Caterer' },
   { value: 'distributor', label: 'Distributor/Wholesaler' },
-  { value: 'retailer', label: 'Retailer' }, 
-  { value: 'event_organizer', label: 'Event Organizer' }, 
+  { value: 'retailer', label: 'Retailer' },
+  { value: 'event_organizer', label: 'Event Organizer' },
   { value: 'other', label: 'Other' },
 ] as const;
 
 type FormFieldConfig = {
-  label: string; 
-  name: keyof Omit<FormData, 'message'>; 
+  label: string;
+  name: keyof Omit<FormData, 'message'>;
   type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'multiselect';
-  placeholder: string; 
-  autocomplete?: string; 
-  icon?: LucideIcon; 
-  options?: ReadonlyArray<{value: string; label: string}>;
+  placeholder: string;
+  autocomplete?: string;
+  icon?: LucideIcon;
+  options?: ReadonlyArray<{ value: string; label: string }>;
 }
 
 const FORM_FIELDS_CONFIG: FormFieldConfig[] = [
@@ -84,25 +83,25 @@ const FORM_FIELDS_CONFIG: FormFieldConfig[] = [
 ];
 
 type FormData = {
-  name: string; 
-  email: string; 
-  phone: string; 
-  pincode: string; 
+  name: string;
+  email: string;
+  phone: string;
+  pincode: string;
   address: string;
-  businessType: typeof BUSINESS_TYPES[number]['value'] | ''; 
-  strawSizes: string[]; 
+  businessType: typeof BUSINESS_TYPES[number]['value'] | '';
+  strawSizes: string[];
   message: string;
 };
 
 // --- UI COMPONENTS ---
-const Header: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => {
+const Header: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   return (
     <header className="fixed top-0 w-full z-30 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-8 w-8 object-contain"/>
+          <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-8 w-8 object-contain" />
           <span className="font-bold text-lg text-gray-800">{COMPANY_NAME}</span>
         </div>
         <nav className="hidden md:flex items-center space-x-8">
@@ -122,9 +121,9 @@ const Header: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100">
           <nav className="px-4 py-4 space-y-3">
-            <a href="#products" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => { setIsMobileMenuOpen(false); document.getElementById('products')?.scrollIntoView({behavior: 'smooth'}); }}>Products</a>
-            <a href="#benefits" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => { setIsMobileMenuOpen(false); document.getElementById('benefits')?.scrollIntoView({behavior: 'smooth'}); }}>Benefits</a>
-            <a href="#samples" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onCTAClick();}}>Samples</a>
+            <a href="#products" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => { setIsMobileMenuOpen(false); document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' }); }}>Products</a>
+            <a href="#benefits" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={() => { setIsMobileMenuOpen(false); document.getElementById('benefits')?.scrollIntoView({ behavior: 'smooth' }); }}>Benefits</a>
+            <a href="#samples" className="block text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors" onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onCTAClick(); }}>Samples</a>
           </nav>
         </div>
       )}
@@ -132,7 +131,7 @@ const Header: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => {
   );
 };
 
-const FreeBanner: React.FC<{onCTAClick: () => void}> = ({onCTAClick}) => (
+const FreeBanner: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
   <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white py-3 px-4 text-center cursor-pointer hover:from-emerald-600 hover:to-green-700 transition-all duration-300" onClick={onCTAClick}>
     <p className="flex items-center justify-center gap-2 text-sm font-semibold animate-pulse">
       <Gift className="h-4 w-4" />
@@ -141,65 +140,150 @@ const FreeBanner: React.FC<{onCTAClick: () => void}> = ({onCTAClick}) => (
   </div>
 );
 
-const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
-  <section className="relative pt-20 pb-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-blue-50 overflow-hidden">
-    <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl"></div>
-      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-200/30 rounded-full blur-3xl"></div>
-    </div>
-    <div className="relative text-center px-4 max-w-4xl mx-auto z-10">
-      <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-emerald-200">
-        <Gift className="h-4 w-4" />
-        <span>Free samples available nationwide</span>
-      </div>
-      <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">{siteInfo.slogan}</h1>
-      <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-12 leading-relaxed max-w-3xl mx-auto font-light">{siteInfo.brandIntro}</p>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
-        {siteInfo.environmentalBenefits.map((benefit, index) => (
-          <div key={benefit.id} className="flex flex-col items-center p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50 hover:bg-white/90 transition-all duration-300 hover:-translate-y-1">
-            <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-xl flex items-center justify-center mb-3`}>
-              <benefit.icon className={`h-6 w-6 text-${benefit.color}-600`} />
-            </div>
-            <span className="text-sm font-semibold text-gray-800 text-center leading-tight">{benefit.title}</span>
-          </div>
-        ))}
-      </div>
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <button 
-          onClick={onCTAClick}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 hover:-translate-y-1">
-          <span>Request Free Samples</span>
-          <ArrowRight className="h-5 w-5" />
-        </button>
-        <button 
-          onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })} 
-          className="text-emerald-600 hover:text-emerald-700 font-semibold px-8 py-4 rounded-2xl transition-colors duration-300 border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50">
-          View Products
-        </button>
-      </div>
-      <p className="text-sm text-gray-500 mt-4">No payment required • Free nationwide shipping • 48-hour dispatch</p>
-    </div>
-  </section>
-);
+const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
+  const [isButtonFixed, setIsButtonFixed] = useState(false);
+  const [buttonOriginalStyles, setButtonOriginalStyles] = useState<{
+    width: number;
+    height: number;
+    left: number; // Original left offset from viewport edge
+    topInDocument: number; // Original top position relative to the document
+  }>({ width: 0, height: 0, left: 0, topInDocument: 0 });
 
-interface ProductCardProps { 
-  product: ProductVariant; 
-  idx: number; 
-  onCTAClick: () => void; 
+  const ctaButtonRef = useRef<HTMLButtonElement>(null);
+  const placeholderContainerRef = useRef<HTMLDivElement>(null); // Ref for the placeholder's container (the flex div)
+
+  // Get initial dimensions and position of the button
+  useEffect(() => {
+    if (ctaButtonRef.current) {
+      const rect = ctaButtonRef.current.getBoundingClientRect();
+      setButtonOriginalStyles({
+        width: rect.width,
+        height: rect.height,
+        left: rect.left,
+        topInDocument: rect.top + window.pageYOffset,
+      });
+    }
+  }, []); // Run once on mount
+
+  // Handle scroll to toggle fixed state
+  useEffect(() => {
+    if (buttonOriginalStyles.topInDocument === 0) return; // Wait until original position is known
+
+    // CONFIGURATION: Where the button should stick vertically on the viewport when fixed.
+    const STICKY_TOP_VIEWPORT_PERCENT = 80; // Sticks at 80% from the top of the viewport (near bottom)
+                                           // Change to 85 or 90 for even lower.
+
+    const handleScroll = () => {
+      const scrollPosition = window.pageYOffset;
+      const stickyPointOnScreenPx = (window.innerHeight * STICKY_TOP_VIEWPORT_PERCENT) / 100;
+      
+      // The button should become fixed when its original top position scrolls PAST the desired sticky point on the screen.
+      if (buttonOriginalStyles.topInDocument - scrollPosition < stickyPointOnScreenPx) {
+        if (!isButtonFixed) setIsButtonFixed(true);
+      } else {
+        if (isButtonFixed) setIsButtonFixed(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isButtonFixed, buttonOriginalStyles.topInDocument]);
+
+
+  // Dynamic styles for the button when it's fixed
+  const fixedButtonStyles: CSSProperties = isButtonFixed ? {
+    position: 'fixed',
+    top: `${(window.innerHeight * 80) / 100}px`, // Sticks at 80% from top.
+    left: `${buttonOriginalStyles.left}px`,
+    width: `${buttonOriginalStyles.width}px`,
+    height: `${buttonOriginalStyles.height}px`,
+    zIndex: 50,
+    // If you want the *bottom* of the button to align with, say, 20px from viewport bottom:
+    // top: `calc(${window.innerHeight}px - ${buttonOriginalStyles.height}px - 20px)`, // 20px from bottom
+    // The current 80% method is simpler if a proportional distance from top is acceptable.
+  } : {};
+
+  // Base classes for button appearance (always applied)
+  const ctaButtonClasses = "bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 inline-flex items-center gap-3 shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 hover:-translate-y-1";
+
+  return (
+    <section className="relative pt-20 pb-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-blue-50 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-200/30 rounded-full blur-3xl"></div>
+      </div>
+      <div className="relative text-center px-4 max-w-4xl mx-auto z-10">
+        <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-emerald-200">
+          <Gift className="h-4 w-4" />
+          <span>Free samples available nationwide</span>
+        </div>
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">{siteInfo.slogan}</h1>
+        <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-12 leading-relaxed max-w-3xl mx-auto font-light">{siteInfo.brandIntro}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
+          {siteInfo.environmentalBenefits.map((benefit) => (
+            <div key={benefit.id} className="flex flex-col items-center p-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50 hover:bg-white/90 transition-all duration-300 hover:-translate-y-1">
+              <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-xl flex items-center justify-center mb-3`}>
+                <benefit.icon className={`h-6 w-6 text-${benefit.color}-600`} />
+              </div>
+              <span className="text-sm font-semibold text-gray-800 text-center leading-tight">{benefit.title}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* This div is the flex container for the buttons */}
+        <div ref={placeholderContainerRef} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Placeholder for the "Request Free Samples" button */}
+            <div style={isButtonFixed && buttonOriginalStyles.width > 0 ? {
+                width: buttonOriginalStyles.width,
+                height: buttonOriginalStyles.height,
+            } : { /* No explicit style when button is not fixed */ }}>
+                <button
+                    ref={ctaButtonRef}
+                    onClick={onCTAClick}
+                    className={ctaButtonClasses}
+                    style={isButtonFixed 
+                        ? fixedButtonStyles 
+                        : { visibility: 'visible' }
+                    }
+                    >
+                    <span>Request Free Samples</span>
+                    <ArrowRight className="h-5 w-5" />
+                </button>
+            </div>
+
+          <button
+            onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+            className="text-emerald-600 hover:text-emerald-700 font-semibold px-8 py-4 rounded-2xl transition-colors duration-300 border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50">
+            View Products
+          </button>
+        </div>
+        <p className="text-sm text-gray-500 mt-4">No payment required • Free nationwide shipping • 48-hour dispatch</p>
+      </div>
+    </section>
+  );
+};
+
+
+interface ProductCardProps {
+  product: ProductVariant;
+  idx: number;
+  onCTAClick: () => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, idx, onCTAClick }) => (
   <div className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl border border-gray-100 transition-all duration-500 transform hover:-translate-y-2">
     <div className="relative overflow-hidden">
-      <img src={product.image} alt={`${product.size} ${siteInfo.websiteName} Rice Straw`} loading="lazy" className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
+      <img src={product.image} alt={`${product.size} ${siteInfo.websiteName} Rice Straw`} loading="lazy" className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
       <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold text-emerald-600">{product.icon} {product.size}</div>
     </div>
     <div className="p-6 text-center">
       <h3 className="text-xl font-bold mb-2 text-gray-900">{product.size} Rice Straw</h3>
       <p className="text-gray-600 text-sm mb-3 font-medium">{product.use}</p>
       <p className="text-gray-500 text-xs mb-6 leading-relaxed">{product.description}</p>
-      <button 
-        onClick={onCTAClick} 
+      <button
+        onClick={onCTAClick}
         className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-6 py-3 rounded-xl transition-all duration-300 hover:shadow-md border border-emerald-200 hover:border-emerald-300">
         Get FREE Sample
       </button>
@@ -207,7 +291,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, idx, onCT
   </div>
 ));
 
-const ProductShowcase: React.FC<{onCTAClick: () => void}> = ({ onCTAClick }) => (
+const ProductShowcase: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => (
   <section id="products" className="py-24 bg-gradient-to-br from-gray-50 to-white">
     <div className="max-w-7xl mx-auto px-4">
       <div className="text-center mb-16">
@@ -260,10 +344,10 @@ const BenefitsSection: React.FC = () => (
 );
 
 const SampleForm: React.FC<{
-  formData: FormData; 
+  formData: FormData;
   isFormValid: boolean;
   onInputChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, fieldName?: keyof FormData, value?: string) => void;
-  onSubmit: (e: FormEvent) => void; 
+  onSubmit: (e: FormEvent) => void;
   isSubmitting: boolean;
   submissionStatus: 'idle' | 'success' | 'error' | 'webhook_error_csv_success';
 }> = ({ formData, isFormValid, onInputChange, onSubmit, isSubmitting, submissionStatus }) => {
@@ -299,27 +383,27 @@ const SampleForm: React.FC<{
                 {field.icon && <field.icon className="inline h-4 w-4 mr-1 mb-0.5 text-gray-500" />} {field.label}
               </label>
               {field.type === 'textarea' ? (
-                <textarea 
-                  name={field.name} 
-                  id={field.name} 
-                  value={formData[field.name as 'address']} 
-                  onChange={onInputChange} 
-                  required 
-                  rows={3} 
-                  placeholder={field.placeholder} 
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 resize-none text-sm placeholder-gray-400 bg-gray-50 focus:bg-white" 
-                  disabled={isSubmitting} 
+                <textarea
+                  name={field.name}
+                  id={field.name}
+                  value={formData[field.name as 'address']}
+                  onChange={onInputChange}
+                  required
+                  rows={3}
+                  placeholder={field.placeholder}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 resize-none text-sm placeholder-gray-400 bg-gray-50 focus:bg-white"
+                  disabled={isSubmitting}
                   autoComplete={field.autocomplete}
                 />
               ) : field.type === 'select' ? (
-                <select 
-                  name={field.name} 
-                  id={field.name} 
-                  value={formData[field.name as 'businessType']} 
-                  onChange={onInputChange} 
-                  required 
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-sm placeholder-gray-400 bg-gray-50 focus:bg-white appearance-none" 
-                  disabled={isSubmitting} 
+                <select
+                  name={field.name}
+                  id={field.name}
+                  value={formData[field.name as 'businessType']}
+                  onChange={onInputChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-sm placeholder-gray-400 bg-gray-50 focus:bg-white appearance-none"
+                  disabled={isSubmitting}
                   autoComplete={field.autocomplete}>
                   {field.options?.map(option => (
                     <option key={option.value} value={option.value} disabled={option.value === ''}>{option.label}</option>
@@ -328,31 +412,30 @@ const SampleForm: React.FC<{
               ) : field.type === 'multiselect' ? (
                 <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-xl bg-gray-50 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500">
                   {field.options?.map(option => (
-                    <button 
-                      type="button" 
-                      key={option.value} 
-                      onClick={() => handleMultiSelectChange(option.value)} 
+                    <button
+                      type="button"
+                      key={option.value}
+                      onClick={() => handleMultiSelectChange(option.value)}
                       disabled={isSubmitting}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200 ${
-                        formData.strawSizes.includes(option.value) 
-                          ? 'bg-emerald-600 text-white border-emerald-600' 
+                      className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200 ${formData.strawSizes.includes(option.value)
+                          ? 'bg-emerald-600 text-white border-emerald-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:border-gray-400'
-                      } ${isSubmitting ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
+                        } ${isSubmitting ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
                       {option.label}
                     </button>
                   ))}
                 </div>
               ) : (
-                <input 
-                  type={field.type as string} 
-                  name={field.name} 
-                  id={field.name} 
-                  value={formData[field.name as Exclude<keyof FormData, 'address' | 'businessType' | 'message' | 'strawSizes'>]} 
-                  onChange={onInputChange} 
-                  required 
-                  autoComplete={field.autocomplete} 
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-sm placeholder-gray-400 bg-gray-50 focus:bg-white" 
-                  placeholder={field.placeholder} 
+                <input
+                  type={field.type as string}
+                  name={field.name}
+                  id={field.name}
+                  value={formData[field.name as Exclude<keyof FormData, 'address' | 'businessType' | 'message' | 'strawSizes'>]}
+                  onChange={onInputChange}
+                  required
+                  autoComplete={field.autocomplete}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-sm placeholder-gray-400 bg-gray-50 focus:bg-white"
+                  placeholder={field.placeholder}
                   disabled={isSubmitting}
                 />
               )}
@@ -360,27 +443,26 @@ const SampleForm: React.FC<{
           ))}
           <div>
             <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">Message (optional)</label>
-            <textarea 
-              name="message" 
-              id="message" 
-              value={formData.message} 
-              onChange={onInputChange} 
-              rows={3} 
-              placeholder="Any specific requirements or questions?" 
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 resize-none text-sm placeholder-gray-400 bg-gray-50 focus:bg-white" 
+            <textarea
+              name="message"
+              id="message"
+              value={formData.message}
+              onChange={onInputChange}
+              rows={3}
+              placeholder="Any specific requirements or questions?"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 resize-none text-sm placeholder-gray-400 bg-gray-50 focus:bg-white"
               disabled={isSubmitting}
             />
           </div>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={!isFormValid || isSubmitting}
-            className={`w-full py-4 px-6 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
-              isSubmitting 
-                ? 'bg-gray-400 text-gray-700 cursor-wait' 
-                : isFormValid 
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 hover:-translate-y-0.5' 
+            className={`w-full py-4 px-6 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${isSubmitting
+                ? 'bg-gray-400 text-gray-700 cursor-wait'
+                : isFormValid
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 hover:-translate-y-0.5'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}>
+              }`}>
             {isSubmitting ? (
               <>
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -425,7 +507,7 @@ const Footer: React.FC = () => (
     <div className="max-w-6xl mx-auto px-4">
       <div className="text-center mb-12">
         <div className="flex justify-center items-center mb-6">
-          <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-12 w-12 object-contain mr-3"/>
+          <img src={siteInfo.logoPath} alt={`${COMPANY_NAME} Logo`} className="h-12 w-12 object-contain mr-3" />
           <span className="text-2xl font-bold text-white">{COMPANY_NAME}</span>
         </div>
         <p className="text-gray-400 max-w-md mx-auto mb-8 leading-relaxed">Creating sustainable packaging solutions for a greener tomorrow</p>
@@ -450,20 +532,20 @@ const Footer: React.FC = () => (
 
 // --- MAIN APP COMPONENT ---
 const Index: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({ 
-    name: '', 
-    email: '', 
-    phone: '', 
-    pincode: '', 
-    address: '', 
-    businessType: '', 
-    strawSizes: [], 
-    message: '' 
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    phone: '',
+    pincode: '',
+    address: '',
+    businessType: '',
+    strawSizes: [],
+    message: ''
   });
   const [isFormValid, setIsFormValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success' | 'error' | 'webhook_error_csv_success'>('idle');
-  
+
   useEffect(() => {
     document.title = `${COMPANY_NAME} - Premium Rice Straws | Free Samples Available`;
     let metaDescription = document.querySelector('meta[name="description"]');
@@ -477,18 +559,18 @@ const Index: React.FC = () => {
 
   useEffect(() => {
     const { name, email, phone, pincode, address, businessType, strawSizes } = formData;
-    const emailRegex = /^\S+@\S+\.\S+$/; 
+    const emailRegex = /^\S+@\S+\.\S+$/;
     const phoneRegex = /^\+?[0-9\s-()]{7,15}$/;
     const pincodeRegex = /^[1-9][0-9]{5}$/;
 
     setIsFormValid(
       !!(name.trim().length > 1 &&
-         emailRegex.test(email.trim()) &&
-         phoneRegex.test(phone.trim()) &&
-         pincodeRegex.test(pincode.trim()) &&
-         address.trim().length > 5 &&
-         businessType !== '' &&
-         strawSizes.length > 0)
+        emailRegex.test(email.trim()) &&
+        phoneRegex.test(phone.trim()) &&
+        pincodeRegex.test(pincode.trim()) &&
+        address.trim().length > 5 &&
+        businessType !== '' &&
+        strawSizes.length > 0)
     );
   }, [formData]);
 
@@ -498,12 +580,12 @@ const Index: React.FC = () => {
     value?: string
   ) => {
     if (fieldName === 'strawSizes' && value !== undefined) {
-      try { 
+      try {
         const newSizes = JSON.parse(value) as string[];
         setFormData(prev => ({ ...prev, strawSizes: newSizes }));
       }
-      catch (error) { 
-        console.error("Error parsing strawSizes:", error); 
+      catch (error) {
+        console.error("Error parsing strawSizes:", error);
       }
     } else {
       const { name, value: inputValue } = e.target;
@@ -515,65 +597,60 @@ const Index: React.FC = () => {
   const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
     if (!isFormValid || isSubmitting) return;
-    
+
     const businessTypeLabel = BUSINESS_TYPES.find(bt => bt.value === formData.businessType)?.label || formData.businessType;
     const tempSubmissionDataForMsg = {
-      name: formData.name.trim(), 
-      email: formData.email.trim(), 
-      phone: formData.phone.trim(), 
-      pincode: formData.pincode.trim(), 
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      pincode: formData.pincode.trim(),
       address: formData.address.trim(),
-      businessType: businessTypeLabel, 
-      strawSizes: formData.strawSizes.join(', '), 
+      businessType: businessTypeLabel,
+      strawSizes: formData.strawSizes.join(', '),
       message: formData.message.trim() || 'N/A',
     };
 
     const whatsappMessage = `*${COMPANY_NAME} - Free Sample Request (Campaign)*\n\nName: ${tempSubmissionDataForMsg.name}\nEmail: ${tempSubmissionDataForMsg.email}\nPhone: ${tempSubmissionDataForMsg.phone}\nPincode: ${tempSubmissionDataForMsg.pincode}\nAddress: ${tempSubmissionDataForMsg.address}\nBusiness Type: ${tempSubmissionDataForMsg.businessType}\nStraw Sizes: ${tempSubmissionDataForMsg.strawSizes}\n${tempSubmissionDataForMsg.message && tempSubmissionDataForMsg.message !== 'N/A' ? `Message: ${tempSubmissionDataForMsg.message}` : ''}\n\nRequest from website: ${WEBSITE_URL}`;
     const whatsappUrl = `https://wa.me/${TARGET_WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
-    
-    // Open WhatsApp first
-    window.open(whatsappUrl, '_blank'); 
 
-    setIsSubmitting(true); 
+    window.open(whatsappUrl, '_blank');
+
+    setIsSubmitting(true);
     setSubmissionStatus('idle');
 
     const submissionData = {
-      name: formData.name.trim(), 
-      email: formData.email.trim(), 
-      phone: formData.phone.trim(), 
-      pincode: formData.pincode.trim(), 
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      pincode: formData.pincode.trim(),
       address: formData.address.trim(),
       businessType: formData.businessType,
       strawSizes: formData.strawSizes.join(', '),
       message: formData.message.trim() || 'N/A',
-      submittedAt: new Date().toISOString(), 
-      source: WEBSITE_URL, 
+      submittedAt: new Date().toISOString(),
+      source: WEBSITE_URL,
       campaign: "Free Sample Request",
     };
 
-    let webhookSuccess = false; 
+    let webhookSuccess = false;
     let csvFallbackUsed = false;
 
-    // Try webhook submission
     if (DATA_SUBMISSION_WEBHOOK_URL && DATA_SUBMISSION_WEBHOOK_URL.trim() !== '') {
       try {
-        console.log('Submitting to webhook:', DATA_SUBMISSION_WEBHOOK_URL);
-        const response = await fetch(DATA_SUBMISSION_WEBHOOK_URL, { 
-          method: 'POST', 
-          headers: {'Content-Type': 'application/json'}, 
+        const response = await fetch(DATA_SUBMISSION_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(submissionData),
           mode: 'cors'
         });
-        
+
         if (response.ok) {
           webhookSuccess = true;
-          console.log('Webhook submission successful');
           toast({
             title: "Success!",
             description: "Your sample request has been submitted successfully.",
           });
         } else {
-          console.error('Webhook failed:', response.status);
           toast({
             title: "Partial Success",
             description: "Request sent via WhatsApp, but data recording had issues.",
@@ -581,7 +658,6 @@ const Index: React.FC = () => {
           });
         }
       } catch (error) {
-        console.error('Webhook error:', error);
         toast({
           title: "WhatsApp Opened",
           description: "Please complete your request via WhatsApp.",
@@ -589,16 +665,15 @@ const Index: React.FC = () => {
       }
     }
 
-    // CSV Fallback if webhook failed
     if (!webhookSuccess) {
       csvFallbackUsed = true;
       const headers = "Name,Email,Phone,Pincode,Address,BusinessType,StrawSizes,Message,SubmittedAt,Source,Campaign\n";
-      const s = (str: string | undefined) => `"${(str || "").replace(/"/g, '""')}"`; 
+      const s = (str: string | undefined) => `"${(str || "").replace(/"/g, '""')}"`;
       const row = `${s(submissionData.name)},${s(submissionData.email)},${s(submissionData.phone)},${s(submissionData.pincode)},${s(submissionData.address)},${s(submissionData.businessType)},${s(submissionData.strawSizes)},${s(submissionData.message)},${s(submissionData.submittedAt)},${s(submissionData.source)},${s(submissionData.campaign)}\n`;
       const csvContent = headers + row;
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
-      
+
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
@@ -614,18 +689,18 @@ const Index: React.FC = () => {
     }
 
     setIsSubmitting(false);
-    
-    if (webhookSuccess) { 
-      setSubmissionStatus('success'); 
-      setFormData({ name: '', email: '', phone: '', pincode: '', address: '', businessType: '', strawSizes: [], message: '' }); 
-    } else if (csvFallbackUsed) { 
-      setSubmissionStatus('webhook_error_csv_success'); 
+
+    if (webhookSuccess) {
+      setSubmissionStatus('success');
+      setFormData({ name: '', email: '', phone: '', pincode: '', address: '', businessType: '', strawSizes: [], message: '' });
+    } else if (csvFallbackUsed) {
+      setSubmissionStatus('webhook_error_csv_success');
       setFormData({ name: '', email: '', phone: '', pincode: '', address: '', businessType: '', strawSizes: [], message: '' });
     } else {
       setSubmissionStatus('error');
     }
-  }, [formData, isFormValid, isSubmitting]); 
-  
+  }, [formData, isFormValid, isSubmitting]);
+
   const scrollToSamples = useCallback(() => {
     document.getElementById('samples')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
@@ -638,17 +713,16 @@ const Index: React.FC = () => {
         <HeroSection onCTAClick={scrollToSamples} />
         <ProductShowcase onCTAClick={scrollToSamples} />
         <BenefitsSection />
-        <SampleForm 
-          formData={formData} 
-          isFormValid={isFormValid} 
-          onInputChange={handleInputChange} 
-          onSubmit={handleSubmit} 
-          isSubmitting={isSubmitting} 
+        <SampleForm
+          formData={formData}
+          isFormValid={isFormValid}
+          onInputChange={handleInputChange}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
           submissionStatus={submissionStatus}
         />
       </main>
       <Footer />
-      <FloatingSampleButton onCTAClick={scrollToSamples} />
     </div>
   );
 };
