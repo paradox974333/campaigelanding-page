@@ -188,7 +188,7 @@ const HeroSection: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => {
     }
     if (buttonGroupContainerTop === 0) return; // Wait until we have the container's top
 
-    const STICKY_TOP_VIEWPORT_PERCENT = 65; 
+    const STICKY_TOP_VIEWPORT_PERCENT = 70; 
 
     const handleScroll = () => {
       const scrollPosition = window.pageYOffset;
